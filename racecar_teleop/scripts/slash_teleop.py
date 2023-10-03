@@ -110,7 +110,14 @@ class teleop(object):
                 self.cmd_msg.linear.x  = 0
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 8 # Control mode
-
+            
+            # Check if MODE1 is active
+            elif (joy_msg.axes[10]):
+                # Mode 1: Constant voltage
+                self.cmd_msg.linear.x  = 4
+                self.cmd_msg.angular.z = 0
+                self.cmd_msg.linear.z  = 1 # Control mode
+            
             # Defaults operation
             # No active button
             else:
