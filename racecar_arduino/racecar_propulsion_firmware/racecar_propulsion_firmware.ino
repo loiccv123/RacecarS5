@@ -66,11 +66,11 @@ long time_micros_last = 0;
 
 //TODO: VOUS DEVEZ DETERMINEZ DES BONS PARAMETRES SUIVANTS
 const float filter_rc  =  0.1;
-const float vel_kp     =  10.0; 
+const float vel_kp     =  1.9366; 
 const float vel_ki     =  0.0; 
-const float vel_kd     =  0.0;
-const float pos_kp     =  1.0; 
-const float pos_kd     =  0.0;
+const float vel_kd     =  1.5984;
+const float pos_kp     =  0.9088; 
+const float pos_kd     =  1.952;
 const float pos_ki     =  0.0; 
 const float pos_ei_sat =  10000.0; 
 
