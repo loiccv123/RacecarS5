@@ -329,10 +329,12 @@ void ctl(){
   
   // Velocity computation
 
-  //TODO: VOUS DEVEZ COMPLETEZ LA DERIVEE FILTRE ICI
-  float vel_raw = (enc_now - enc_old) * tick2m / time_period_low * 1000;
-  float alpha   = 0; // TODO
-  float vel_fil = vel_raw;    // Filter TODO
+  float vel_raw = (enc_now - enc_old) * tick2m / dt_low * 1000;
+  float pos_raw = enc_now * tick2m;
+  
+  float alpha   = filter_rc; // TODO
+  float vel_fil = (1 - alpha) * vel_fil + alpha * vel_raw;    // Filter TODO
+  float pos_fil = (1 - alpha) * pos_fil + alpha * pos_raw;
   
   // Propulsion Controllers
   
