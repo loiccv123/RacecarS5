@@ -401,7 +401,7 @@ void ctl(int dt_low){
       pos_error_int = pos_ei_sat;
     }
     
-    dri_cmd = dri_cmd = pos_kp * pos_error + pos_ki * pos_error_int + pos_kd * (pos_error - pos_error_old); // TODO
+    dri_cmd = pos_kp * pos_error + pos_ki * pos_error_int + pos_kd * (pos_error - pos_error_old); // TODO
     
     dri_pwm = cmd2pwm( dri_cmd ) ;
   }
