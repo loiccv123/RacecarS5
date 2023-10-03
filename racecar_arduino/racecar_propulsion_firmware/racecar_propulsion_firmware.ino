@@ -344,6 +344,9 @@ void ctl(){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
     
   }
   //////////////////////////////////////////////////////
@@ -356,6 +359,9 @@ void ctl(){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
   }
   //////////////////////////////////////////////////////
   else if (ctl_mode == 2 ){
@@ -404,6 +410,9 @@ void ctl(){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -412,6 +421,9 @@ void ctl(){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
     
     dri_pwm    = pwm_zer_dri ;
   }
