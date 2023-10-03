@@ -332,8 +332,11 @@ void ctl(int dt_low){
 
   //TODO: VOUS DEVEZ COMPLETEZ LA DERIVEE FILTRE ICI
   float vel_raw = (enc_now - enc_old) * tick2m / dt_low * 1000;
+  float pos_raw = enc_now * tick2m;
+  
   float alpha   = filter_rc; // TODO
   float vel_fil = (1 - alpha) * vel_fil + alpha * vel_raw;    // Filter TODO
+  float pos_fil = (1 - alpha) * pos_fil + alpha * pos_raw;
   
   // Propulsion Controllers
   
@@ -377,6 +380,8 @@ void ctl(int dt_low){
     vel_error     = vel_ref - vel_fil;
     vel_error_int += vel_error; // TODO
     dri_cmd       = vel_kp * vel_error + vel_ki * vel_error_int + vel_kd * (vel_error - vel_error_old);
+
+    vel_error_old = vel_error;
     
     dri_pwm    = cmd2pwm( dri_cmd ) ;
 
@@ -387,8 +392,8 @@ void ctl(int dt_low){
     // Commands received in [m] setpoints
     
     float pos_ref, pos_error, pos_error_ddt;
-    unsigned long millis = millis();
-    time_elapsed = millis - millis_old;
+    unsigned long millis1 = millis();
+    unsigned long time_elapsed = millis1 - millis_old;
 
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
     pos_ref       = dri_ref; 
@@ -402,6 +407,9 @@ void ctl(int dt_low){
     }
     
     dri_cmd = pos_kp * pos_error + pos_ki * pos_error_int + pos_kd * (pos_error - pos_error_old); // TODO
+
+    pos_error_old = pos_error;
+    millis_old = millis1;
     
     dri_pwm = cmd2pwm( dri_cmd ) ;
   }
@@ -439,9 +447,6 @@ void ctl(int dt_low){
   //Update memory variable
   enc_old = enc_now;
   vel_old = vel_fil;
-  pos_error_old = pos_error;
-  vel_error_old = vel_error;
-  millis_old = millis;
 }
 
 
