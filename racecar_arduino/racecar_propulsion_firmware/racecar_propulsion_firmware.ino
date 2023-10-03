@@ -117,8 +117,6 @@ int   dri_pwm = 0;
 float dri_cmd = 0;
 
 // Controller memory (differentiation, filters and integral actions)
-unsigned long millis_old = 0;
-float vel_fil = 0;
 
 signed long enc_now   = 0;
 signed long enc_old   = 0;
@@ -129,8 +127,6 @@ float vel_old   = 0;
 
 float vel_error_int = 0 ;
 float pos_error_int = 0;
-float vel_error_old = 0;
-float pos_error_old = 0;
 
 
 // Loop timing
@@ -351,10 +347,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
-
     
   }
   //////////////////////////////////////////////////////
@@ -367,9 +359,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
 
   }
   //////////////////////////////////////////////////////
@@ -419,10 +408,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
-
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -431,10 +416,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
-
     
     dri_pwm    = pwm_zer_dri ;
   }
