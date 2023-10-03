@@ -66,11 +66,11 @@ long time_micros_last = 0;
 
 //TODO: VOUS DEVEZ DETERMINEZ DES BONS PARAMETRES SUIVANTS
 const float filter_rc  =  0.1;
-const float vel_kp     =  1.9366; 
+const float vel_kp     =  10.0; 
 const float vel_ki     =  0.0; 
-const float vel_kd     =  1.5984;
-const float pos_kp     =  0.9088; 
-const float pos_kd     =  1.952;
+const float vel_kd     =  0.0;
+const float pos_kp     =  1.0; 
+const float pos_kd     =  0.0;
 const float pos_ki     =  0.0; 
 const float pos_ei_sat =  10000.0; 
 
@@ -112,9 +112,6 @@ int   dri_pwm = 0;
 float dri_cmd = 0;
 
 // Controller memory (differentiation, filters and integral actions)
-unsigned long millis_old = 0;
-float vel_fil = 0;
-
 signed long enc_now   = 0;
 signed long enc_old   = 0;
 
@@ -124,8 +121,6 @@ float vel_old   = 0;
 
 float vel_error_int = 0 ;
 float pos_error_int = 0;
-float vel_error_old = 0;
-float pos_error_old = 0;
 
 // Loop timing
 unsigned long time_now       = 0;
@@ -332,11 +327,8 @@ void ctl(int dt_low){
 
   //TODO: VOUS DEVEZ COMPLETEZ LA DERIVEE FILTRE ICI
   float vel_raw = (enc_now - enc_old) * tick2m / dt_low * 1000;
-  float pos_raw = enc_now * tick2m;
-  
-  float alpha   = filter_rc; // TODO
-  float vel_fil = (1 - alpha) * vel_fil + alpha * vel_raw;    // Filter TODO
-  float pos_fil = (1 - alpha) * pos_fil + alpha * pos_raw;
+  float alpha   = 0; // TODO
+  float vel_fil = vel_raw;    // Filter TODO
   
   // Propulsion Controllers
   
@@ -348,9 +340,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
     
   }
   //////////////////////////////////////////////////////
@@ -363,10 +352,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
-
   }
   //////////////////////////////////////////////////////
   else if (ctl_mode == 2 ){
@@ -378,38 +363,31 @@ void ctl(int dt_low){
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
     vel_ref       = dri_ref; 
     vel_error     = vel_ref - vel_fil;
-    vel_error_int += vel_error; // TODO
-    dri_cmd       = vel_kp * vel_error + vel_ki * vel_error_int + vel_kd * (vel_error - vel_error_old);
-
-    vel_error_old = vel_error;
+    vel_error_int = 0; // TODO
+    dri_cmd       = vel_kp * vel_error; // proportionnal only
     
     dri_pwm    = cmd2pwm( dri_cmd ) ;
 
   }
   ///////////////////////////////////////////////////////
-  else if (ctl_mode == 7){
+  else if (ctl_mode == 3){
     // Low-level Position control
     // Commands received in [m] setpoints
     
     float pos_ref, pos_error, pos_error_ddt;
-    unsigned long millis1 = millis();
-    unsigned long time_elapsed = millis1 - millis_old;
 
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
     pos_ref       = dri_ref; 
-    pos_error     = pos_ref - pos_fil; // TODO
-    pos_error_ddt = (pos_error - pos_error_old) / time_elapsed; // TODO
-    pos_error_int += pos_error; // TODO
+    pos_error     = 0; // TODO
+    pos_error_ddt = 0; // TODO
+    pos_error_int = 0; // TODO
     
     // Anti wind-up
     if ( pos_error_int > pos_ei_sat ){
       pos_error_int = pos_ei_sat;
     }
     
-    dri_cmd = pos_kp * pos_error + pos_ki * pos_error_int + pos_kd * (pos_error - pos_error_old); // TODO
-
-    pos_error_old = pos_error;
-    millis_old = millis1;
+    dri_cmd = 0; // TODO
     
     dri_pwm = cmd2pwm( dri_cmd ) ;
   }
@@ -422,9 +400,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -433,9 +408,6 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
-    vel_error_old = 0;
-    pos_error_old = 0;
-    millis_old = 0;
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -511,7 +483,7 @@ void loop(){
     
     // All-stop
     dri_ref  = 0;  // velocity set-point
-    ctl_mode = 4;  // closed-loop velocity mode
+    ctl_mode = 2;  // closed-loop velocity mode
     
   }
 
