@@ -66,12 +66,17 @@ long time_micros_last = 0;
 
 //TODO: VOUS DEVEZ DETERMINEZ DES BONS PARAMETRES SUIVANTS
 const float filter_rc  =  0.1;
-const float vel_kp     =  1.9366; 
+const float vel_kp     =  10.0; 
+const float vel_ki     =  0.0; 
+const float vel_kd     =  0.0;
+const float pos_kp     =  1.0; 
+const float pos_kd     =  0.0;
+const float pos_ki     =  0.0;
+/*const float vel_kp     =  1.9366; 
 const float vel_ki     =  0; 
 const float vel_kd     =  1.5984;
 const float pos_kp     =  0.9088; 
-const float pos_kd     =  1.952;
-const float pos_ki     =  0.0; 
+const float pos_kd     =  1.952;*/
 const float pos_ei_sat =  10000.0; 
 
 // Loop period 
@@ -94,7 +99,7 @@ const double batteryV  = 8;
 const double maxAngle  = 40*(2*3.1416)/360;    //max steering angle in rad
 const double rad2pwm   = (pwm_zer_ser-pwm_min_ser)/maxAngle;
 const double volt2pwm  = (pwm_zer_dri-pwm_min_dri)/batteryV;
-const double tick2m    = 0.0000026752; // confirmed on 3m
+const double tick2m    = 0.0000026752; // To confirm
 
 ///////////////////////////////////////////////////////////////////
 // Memory
@@ -112,6 +117,9 @@ int   dri_pwm = 0;
 float dri_cmd = 0;
 
 // Controller memory (differentiation, filters and integral actions)
+unsigned long millis_old = 0;
+float vel_fil = 0;
+
 signed long enc_now   = 0;
 signed long enc_old   = 0;
 
@@ -121,6 +129,9 @@ float vel_old   = 0;
 
 float vel_error_int = 0 ;
 float pos_error_int = 0;
+float vel_error_old = 0;
+float pos_error_old = 0;
+
 
 // Loop timing
 unsigned long time_now       = 0;
@@ -340,6 +351,10 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
+
     
   }
   //////////////////////////////////////////////////////
@@ -352,6 +367,10 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
+
   }
   //////////////////////////////////////////////////////
   else if (ctl_mode == 2 ){
@@ -400,6 +419,10 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
+
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -408,6 +431,10 @@ void ctl(int dt_low){
     // reset integral actions
     vel_error_int = 0 ;
     pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
+
     
     dri_pwm    = pwm_zer_dri ;
   }
