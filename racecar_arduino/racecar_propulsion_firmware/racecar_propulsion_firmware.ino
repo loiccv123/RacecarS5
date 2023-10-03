@@ -387,7 +387,7 @@ void ctl(int dt_low){
 
   }
   ///////////////////////////////////////////////////////
-  else if (ctl_mode == 3){
+  else if (ctl_mode == 7){
     // Low-level Position control
     // Commands received in [m] setpoints
     
@@ -511,7 +511,7 @@ void loop(){
     
     // All-stop
     dri_ref  = 0;  // velocity set-point
-    ctl_mode = 2;  // closed-loop velocity mode
+    ctl_mode = 4;  // closed-loop velocity mode
     
   }
 
