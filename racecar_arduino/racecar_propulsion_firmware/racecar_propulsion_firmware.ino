@@ -378,8 +378,6 @@ void ctl(int dt_low){
     vel_error_int += vel_error; // TODO
     dri_cmd       = vel_kp * vel_error + vel_ki * vel_error_int + vel_kd * (vel_error - vel_error_old);
     
-    vel_error_old = vel_error;
-
     dri_pwm    = cmd2pwm( dri_cmd ) ;
 
   }
@@ -442,6 +440,7 @@ void ctl(int dt_low){
   enc_old = enc_now;
   vel_old = vel_fil;
   pos_error_old = pos_error;
+  vel_error_old = vel_error;
   millis_old = millis;
 }
 
