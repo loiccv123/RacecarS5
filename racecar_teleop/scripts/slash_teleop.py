@@ -77,7 +77,7 @@ class teleop(object):
                 self.cmd_msg.linear.z  = 4  # Control mode
                 
             #If button x is active 
-            elif(joy_msg.buttons[0]):   
+            elif(joy_msg.buttons[8]):   
                 # Closed-loop velocity with fixed 1 m/s ref, Closed-loop steering
                 self.cmd_msg.linear.x  = 2 #[m/s]
                 self.cmd_msg.angular.z = 0 # [m]
@@ -112,7 +112,7 @@ class teleop(object):
                 self.cmd_msg.linear.z  = 8 # Control mode
             
             # Check if MODE1 is active
-            elif (joy_msg.buttons[8]):
+            elif (joy_msg.buttons[0]):
                 # Mode 1: Constant voltage
                 self.cmd_msg.linear.x  = 4
                 self.cmd_msg.angular.z = 0
