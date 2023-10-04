@@ -370,7 +370,7 @@ void ctl(){
     // Low-level Velocity control
     // Commands received in [m/sec] setpoints
     
-    float vel_ref, vel_error;
+    /*float vel_ref, vel_error;
 
     vel_ref       = dri_ref; 
     vel_error     = vel_ref - vel_fil;
@@ -380,7 +380,17 @@ void ctl(){
 
     vel_error_old = vel_error;
     
+    dri_pwm    = cmd2pwm( dri_cmd ) ;*/
+
+    dri_cmd    = dri_ref;
     dri_pwm    = cmd2pwm( dri_cmd ) ;
+    
+    // reset integral actions
+    vel_error_int = 0;
+    pos_error_int = 0 ;
+    vel_error_old = 0;
+    pos_error_old = 0;
+    millis_old = 0;
 
   }
   ///////////////////////////////////////////////////////
