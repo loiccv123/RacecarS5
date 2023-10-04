@@ -62,9 +62,9 @@ const int dri_dir_pin     = 42; //
 const float filter_rc  =  0.1;
 const float vel_kp     =  10.0; 
 const float vel_ki     =  0.0; 
-const float vel_kd     =  0.0;
-const float pos_kp     =  1.0; 
-const float pos_kd     =  0.0;
+const float vel_kd     =  10.0;
+const float pos_kp     =  15.0; 
+const float pos_kd     =  10.0;
 /*const float vel_kp     =  1.9366; 
 const float vel_ki     =  0; 
 const float vel_kd     =  1.5984;
@@ -371,12 +371,13 @@ void ctl(){
     // Commands received in [m/sec] setpoints
     
     float vel_ref, vel_error;
+    float Periode = (tick2m / time_period_low) *1000;
 
     vel_ref       = dri_ref; 
     vel_error     = vel_ref - vel_fil;
 
-    vel_error_int += vel_error;
-    dri_cmd       = vel_kp * vel_error + vel_ki * vel_error_int + vel_kd * (vel_error - vel_error_old);
+    vel_error_int += vel_error * Periode;
+    dri_cmd       = vel_kp * vel_error + vel_ki * vel_error_int + vel_kd * (vel_error - vel_error_old)/Periode;
 
     vel_error_old = vel_error;
     
@@ -389,6 +390,7 @@ void ctl(){
     // Commands received in [m] setpoints
     
     float pos_ref, pos_error, pos_error_ddt;
+    float Periode = (tick2m / time_period_low) *1000;
 
     unsigned long millis1 = millis();
     unsigned long time_elapsed = millis1 - millis_old;
@@ -396,7 +398,7 @@ void ctl(){
     pos_ref       = dri_ref; 
     pos_error     = pos_ref - pos_fil;
     pos_error_ddt = (pos_error - pos_error_old) / time_elapsed;
-    pos_error_int += pos_error;
+    pos_error_int += pos_error * Periode;
     
     
     // Anti wind-up
