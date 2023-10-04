@@ -329,12 +329,11 @@ void ctl(){
   
   // Velocity computation
 
-  float vel_raw = (enc_now - enc_old) * tick2m / time_period_low * 1000;
+  float vel_raw = (enc_now - enc_old) * tick2m / (time_period_low * 1000);
   float pos_raw = enc_now * tick2m;
   
-  float alpha   = filter_rc; // TODO
-  float vel_fil = (1 - alpha) * vel_fil + alpha * vel_raw;    // Filter TODO
-  float pos_fil = (1 - alpha) * pos_fil + alpha * pos_raw;
+  float alpha   = filter_rc;
+  float vel_fil = (1 - alpha) * vel_fil + alpha * vel_raw;
   
   // Propulsion Controllers
   
@@ -392,11 +391,11 @@ void ctl(){
     float pos_ref, pos_error, pos_error_ddt;
     float Periode = (tick2m / time_period_low) *1000;
 
-    unsigned long millis1 = millis();
-    unsigned long time_elapsed = millis1 - millis_old;
+    unsigned long millis_actual = millis();
+    unsigned long time_elapsed = millis_actual - millis_old;
 
     pos_ref       = dri_ref; 
-    pos_error     = pos_ref - pos_fil;
+    pos_error     = pos_ref - pos_raw;
     pos_error_ddt = (pos_error - pos_error_old) / time_elapsed;
     pos_error_int += pos_error * Periode;
     
@@ -409,7 +408,7 @@ void ctl(){
     dri_cmd = pos_kp * pos_error + pos_ki * pos_error_int + pos_kd * (pos_error - pos_error_old);
 
     pos_error_old = pos_error;
-    millis_old = millis1;
+    millis_old = millis_actual;
     
     dri_pwm = cmd2pwm( dri_cmd ) ;
   }
