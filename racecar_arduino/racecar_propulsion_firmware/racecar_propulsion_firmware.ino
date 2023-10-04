@@ -60,11 +60,11 @@ const int dri_dir_pin     = 42; //
 
 //TODO: VOUS DEVEZ DETERMINEZ DES BONS PARAMETRES SUIVANTS
 const float filter_rc  =  0.1;
-const float vel_kp     =  10.0; 
-const float vel_ki     =  0.0; 
+const float vel_kp     =  20; 
+const float vel_ki     =  15; 
 const float vel_kd     =  10.0;
-const float pos_kp     =  15.0; 
-const float pos_kd     =  10.0;
+const float pos_kp     =  23; 
+const float pos_kd     =  64;
 /*const float vel_kp     =  1.9366; 
 const float vel_ki     =  0; 
 const float vel_kd     =  1.5984;
