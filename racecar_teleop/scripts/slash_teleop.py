@@ -60,7 +60,7 @@ class teleop(object):
                 # Closed-loop position, Open-loop steering
                 self.cmd_msg.linear.x  = 1 # [m]
                 self.cmd_msg.angular.z = steering_user_input * self.cmd2rad
-                self.cmd_msg.linear.z  = 2   #CtrlChoice
+                self.cmd_msg.linear.z  = 3   #CtrlChoice
                 
             #If button A is active 
             elif(joy_msg.buttons[1]):   
@@ -95,7 +95,7 @@ class teleop(object):
                 # Closed-loop velocity 1 m/s, Open-loop steering
                 self.cmd_msg.linear.x  = 1 #[m/s]
                 self.cmd_msg.angular.z = 0
-                self.cmd_msg.linear.z  = 7 # Control mode
+                self.cmd_msg.linear.z  = 2 # Control mode
                 
             #If right joy pushed
             elif(joy_msg.buttons[11]):
