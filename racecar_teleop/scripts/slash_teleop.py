@@ -93,7 +93,7 @@ class teleop(object):
             #If left trigger is active 
             elif (joy_msg.buttons[6]):
                 # Closed-loop velocity 1 m/s, Open-loop steering
-                self.cmd_msg.linear.x  = 5 #[m/s]
+                self.cmd_msg.linear.x  = 2 #[m/s]
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 1 # Control mode
                 
