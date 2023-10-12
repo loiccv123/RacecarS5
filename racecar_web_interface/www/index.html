@@ -31,17 +31,16 @@ Client-side:
   <div class="collapse" id="navbarToggleExternalContent">
     <div class="bg-dark p-4">
       <h6 class="text-white h4">Config</h6>
+      <form id="dataForm">
+        <label for="inputData" style="color: white;">Enter Data:</label>
+        <input type="text" id="inputData" name="inputData">
+        <input type="submit" value="Submit and Display">
+      </form>
     </div>
   </div>
 
   <nav class="navbar navbar-dark bg-dark">
     <div>
-    
-      <form id="dataForm">
-        <label for="inputData">Enter Data:</label>
-        <input type="text" id="inputData" name="inputData">
-        <input type="submit" value="Submit and Display">
-    </form>
     
       <!--<form id = ­"Connection">
         <label for="ipAdress"> ROS_master_IP: </label>
@@ -64,13 +63,17 @@ Client-side:
         <textarea id="myTextarea" rows="4" cols="25"> </textarea>
         <br>       
         <button onclick="ClearTextarea()"> Effacer </button> 
-        <h1> Contröle </h1>
-        <button onclick="PrintAvancer()"> Avancer </button> 
-        <button onclick="PrintArreter()"> Arreter </button> 
+        <h1> Controle </h1>
+        <button onclick="Avancer()"> Avancer </button>
+        <button onclick="Arreter()"> Arreter </button>
+
+        <!-- <button onclick="PrintTextarea('En avant!')"> Avancer </button> -->
+        <!-- <button onclick="PrintTextarea('Arret!')"> Arreter </button> -->
     </div>
     <div class="column" style="background-color: red;">
     <h1> Caméra </h1>
-    <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image&type=ros_compressed"> </img>
+    <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image_raw">
+    <!-- <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image&type=ros_compressed"> </img> -->
     </div>
   </div>
   <!-- Main layout END-->
@@ -92,48 +95,56 @@ Client-side:
       $(document).ready(function(){
         //document.getElementById("log").value = 'Default text\n'
       });
-      
-      function PrintAvancer() {
-            var textarea = document.getElementById("myTextarea");
+
+      //ACTIVITE 1
+      function PrintTextarea(message) {
+        var textarea = document.getElementById("myTextarea");
             var currentText = textarea.value;
-            var newText ="En Avant!";
             if (currentText !== "") {
-                 var updatedText = currentText + "\n" + newText;
+                 var updatedText = currentText + "\n" + message;
             }
             else {
-                     var updatedText = newText;
+                  var updatedText = message;
                  }    
             textarea.value = updatedText;
       }
-      
-      function PrintArreter() {
-            var textarea = document.getElementById("myTextarea");
-            var currentText = textarea.value;
-            var newText ="Arret!";
-            var updatedText = currentText + "\n" + newText;
-            textarea.value = updatedText;
-      }   
-      
+
+      //ACTIVITE 2
+      function Avancer() {
+        var textarea = document.getElementById("myTextarea");
+        twist.linear.x = 1.0;
+      }
+      function Arreter() {
+        var textarea = document.getElementById("myTextarea");
+        twist.linear.x = 0.0;
+      }
       function ClearTextarea() {
             var textarea = document.getElementById("myTextarea");
-            var newText ="";
-            textarea.value = newText;      
+            textarea.value = "";      
       }
       
       document.getElementById("dataForm").addEventListener("submit", function(event) {
-        event.preventDefault(); 
-        const inputData = document.getElementById("inputData").value;
-        const newURL = "index.html?inputData=" + encodeURIComponent(inputData);
-        window.open(newURL, "_blank");
-       });
-        
-      // Define some functions
-      function connectROS() {
-        // This function connects to the rosbridge server
+        event.preventDefault();
+        const inputDataField = document.getElementById("inputData");
+        const inputData = inputDataField.value;
+        connectROS(inputData);
+      });
 
+      
+      // document.getElementById("dataForm").addEventListener("submit", function(event) {
+      //   event.preventDefault(); 
+      //   const inputData = document.getElementById("inputData").value;
+      //   const newURL = "index.html?inputData=" + encodeURIComponent(inputData);
+      //   window.open(newURL, "_blank");
+      //  });
+        
+      function connectROS(inputData) {
+        // This function connects to the rosbridge server
+      console.log("connectROS");
 	    rbServer = new ROSLIB.Ros({
           // Assuming ros server IP is 10.42.0.1
-	      url : 'ws://10.42.0.1:9090'
+          url : 'ws://' + inputData + ':9090'
+	        //url : 'ws://' + '127.0.0.1' + ':9090'
 	    });
 
         rbServer.on('connection', function(){
@@ -149,10 +160,12 @@ Client-side:
 
         rbServer.on('error', function(error) {
           console.log('Error connecting to websocket server: ', error);
+          PrintTextarea('Erreur de connexion avec le Racecar!' + error);
 	    });
 
 	    rbServer.on('close', function() {
           console.log('Connection to websocket server closed.');
+          PrintTextarea('Connextion fermee.');
 	    });
       }
 
