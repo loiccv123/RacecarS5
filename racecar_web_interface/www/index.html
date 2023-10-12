@@ -36,11 +36,19 @@ Client-side:
 
   <nav class="navbar navbar-dark bg-dark">
     <div>
-      <form id = ­"Connection¨>
-        <label for=¨ipAdress¨> ROS_master_IP: </label>
+    
+      <form id="dataForm">
+        <label for="inputData">Enter Data:</label>
+        <input type="text" id="inputData" name="inputData">
+        <input type="submit" value="Submit and Display">
+    </form>
+    
+      <!--<form id = ­"Connection">
+        <label for="ipAdress"> ROS_master_IP: </label>
         <input type="text" id="ipAdress" name="ipAdress" placeholder="Enter Robot IP"> </input>
-        <button onclick: "connectROS()"> Connect </button> 
-       </form>
+        <input type="submit" value="Submit and Display">
+        <button onclick="debugROS()"> Connect </button> 
+      </form>  -->
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -55,10 +63,10 @@ Client-side:
         <h1> Status </h1>
         <textarea id="myTextarea" rows="4" cols="25"> </textarea>
         <br>       
-        <button> Effacer </button> 
+        <button onclick="ClearTextarea()"> Effacer </button> 
         <h1> Contröle </h1>
-        <button> Avancer </button> 
-        <button> Arreter </button> 
+        <button onclick="PrintAvancer()"> Avancer </button> 
+        <button onclick="PrintArreter()"> Arreter </button> 
     </div>
     <div class="column" style="background-color: red;">
     <h1> Caméra </h1>
@@ -82,14 +90,42 @@ Client-side:
 
       //Some initializations after the page has been shown
       $(document).ready(function(){
-        document.getElementById("log").value = 'Default text\n'
+        //document.getElementById("log").value = 'Default text\n'
       });
-
-
-        function connectROS() {
-            const ipAddress = document.getElementById("ipAddress").value;
-            alert("Connecting to ROS master at IP address: " + ipAddress);
-        }
+      
+      function PrintAvancer() {
+            var textarea = document.getElementById("myTextarea");
+            var currentText = textarea.value;
+            var newText ="En Avant!";
+            if (currentText !== "") {
+                 var updatedText = currentText + "\n" + newText;
+            }
+            else {
+                     var updatedText = newText;
+                 }    
+            textarea.value = updatedText;
+      }
+      
+      function PrintArreter() {
+            var textarea = document.getElementById("myTextarea");
+            var currentText = textarea.value;
+            var newText ="Arret!";
+            var updatedText = currentText + "\n" + newText;
+            textarea.value = updatedText;
+      }   
+      
+      function ClearTextarea() {
+            var textarea = document.getElementById("myTextarea");
+            var newText ="";
+            textarea.value = newText;      
+      }
+      
+      document.getElementById("dataForm").addEventListener("submit", function(event) {
+        event.preventDefault(); 
+        const inputData = document.getElementById("inputData").value;
+        const newURL = "index.html?inputData=" + encodeURIComponent(inputData);
+        window.open(newURL, "_blank");
+       });
         
       // Define some functions
       function connectROS() {
