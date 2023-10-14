@@ -256,6 +256,11 @@ Client-side:
           console.log('Connection to websocket server closed.');
           PrintTextarea('Connextion fermee.');
           updateConnectionStatus(false);
+          document.getElementById("avancerButton").disabled = true;
+          document.getElementById("arreterButton").disabled = true;
+          document.getElementById("turnLeftButton").disabled = true;
+          document.getElementById("turnRightButton").disabled = true;
+          document.getElementById("reculerButton").disabled = true;
           connectionEstablished = false;
 	    });
       }
