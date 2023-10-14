@@ -22,22 +22,43 @@ Client-side:
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/dashboard.css">
 
-    <title>Laboratoire S5-GIF250</title>
+    <title>Racecar control GUI</title>
 </head>
 
-<body style="background-color: green;">
+<body style>
     
   <!-- Menu BEGIN-->
   <div class="collapse" id="navbarToggleExternalContent">
     <div class="bg-dark p-4">
-      <h6 class="text-white h4">Config</h6>
+      <h6 class="text-white h4">Configuration</h6>
       <form id="dataForm">
-        <label for="inputData" style="color: white;">Enter Data:</label>
+        <label for="inputData" style="color: white;">ROS_master_IP:</label>
         <input type="text" id="inputData" name="inputData">
-        <input type="submit" value="Submit and Display">
+        <br> 
+        <label for="inputUsername" style="color: white;">Username:</label>
+        <input type="text" id="inputUsername" name="inputUsername" placeholder="Enter Username">
+        <br> 
+        <input type="submit" id="submitButton" value="Submit">
       </form>
     </div>
   </div>
+
+  <script>
+    function enableSubmitButton() {
+      var inputData = document.getElementById("inputData").value;
+      var inputUsername = document.getElementById("inputUsername").value;
+      var submitButton = document.getElementById("submitButton");
+    
+      if (inputData.trim() !== "" && inputUsername.trim() !== "") {
+        submitButton.disabled = false;
+      } else {
+        submitButton.disabled = true;
+      }
+    }
+    
+    // Call it once to initialize the button state
+    enableSubmitButton();
+    </script>
 
   <nav class="navbar navbar-dark bg-dark">
     <div>
@@ -58,23 +79,27 @@ Client-side:
   <!-- Main layout BEGIN-->
   <div class="container-fluid"  >
   
-    <div class="column" style="background-color: blue;">
-        <h1> Status </h1>
+    <div class="column">
+        <h1> Statut </h1>
         <textarea id="myTextarea" rows="4" cols="25"> </textarea>
         <br>       
-        <button onclick="ClearTextarea()"> Effacer </button> 
+        <button class = "button" onclick="ClearTextarea()"> Effacer </button> 
         <h1> Controle </h1>
-        <button onclick="Avancer()"> Avancer </button>
-        <button onclick="Arreter()"> Arreter </button>
+        <button class = "button" id="avancerButton" onclick="Avancer()"> Avancer </button>
+        <button class = "button" id="arreterButton" onclick="Arreter()"> Arreter </button>
+        <button class="button" id="turnLeftButton" onclick="TurnLeft()"> Tourner à gauche </button>
+        <button class="button" id="turnRightButton" onclick="TurnRight()"> Tourner à droite </button>
+        <button class="button" id="reculerButton" onclick="Reculer()"> Reculer </button>
 
         <!-- <button onclick="PrintTextarea('En avant!')"> Avancer </button> -->
         <!-- <button onclick="PrintTextarea('Arret!')"> Arreter </button> -->
     </div>
-    <div class="column" style="background-color: red;">
-    <h1> Caméra </h1>
+    <div class="column">
+    <h1> Camera </h1>
     <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image_raw">
     <!-- <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image&type=ros_compressed"> </img> -->
     </div>
+
   </div>
   <!-- Main layout END-->
   
@@ -94,6 +119,14 @@ Client-side:
       //Some initializations after the page has been shown
       $(document).ready(function(){
         //document.getElementById("log").value = 'Default text\n'
+        document.getElementById("avancerButton").disabled = true;
+        document.getElementById("arreterButton").disabled = true;
+        document.getElementById("turnLeftButton").disabled = true;
+        document.getElementById("turnRightButton").disabled = true;
+        document.getElementById("reculerButton").disabled = true;
+
+        document.getElementById("inputData").addEventListener("input", enableSubmitButton);
+        document.getElementById("inputUsername").addEventListener("input", enableSubmitButton);
       });
 
       //ACTIVITE 1
@@ -113,11 +146,36 @@ Client-side:
       function Avancer() {
         var textarea = document.getElementById("myTextarea");
         twist.linear.x = 1.0;
+        twist.angular.z = 0.0;
+        PrintTextarea('En avant!');
       }
       function Arreter() {
         var textarea = document.getElementById("myTextarea");
         twist.linear.x = 0.0;
+        twist.angular.z = 0.0;
+        PrintTextarea('Arrêt!');
       }
+
+      function TurnLeft() {
+        var textarea = document.getElementById("myTextarea");
+        twist.linear.x = 1.0;
+        twist.angular.z = 1.0;
+        PrintTextarea('Tourner à gauche!');
+        }
+
+      function TurnRight() {
+        var textarea = document.getElementById("myTextarea");
+        twist.linear.x = 1.0;
+        twist.angular.z = -1.0;
+        PrintTextarea('Tourner à droite!');
+        }
+
+      function Reculer() {
+        var textarea = document.getElementById("myTextarea");
+        twist.linear.x = -1.0;
+        PrintTextarea('Reculer!');
+        }
+
       function ClearTextarea() {
             var textarea = document.getElementById("myTextarea");
             textarea.value = "";      
@@ -127,6 +185,7 @@ Client-side:
         event.preventDefault();
         const inputDataField = document.getElementById("inputData");
         const inputData = inputDataField.value;
+        console.log(inputData);
         connectROS(inputData);
       });
 
@@ -137,18 +196,46 @@ Client-side:
       //   const newURL = "index.html?inputData=" + encodeURIComponent(inputData);
       //   window.open(newURL, "_blank");
       //  });
-        
+      var connectionTimeout;
+      var connectionEstablished;
+
       function connectROS(inputData) {
         // This function connects to the rosbridge server
+      clearTimeout(connectionTimeout);
       console.log("connectROS");
+      connectionEstablished = false;
+      document.getElementById("avancerButton").disabled = true;
+      document.getElementById("arreterButton").disabled = true;
+      document.getElementById("turnLeftButton").disabled = true;
+      document.getElementById("turnRightButton").disabled = true;
+      document.getElementById("reculerButton").disabled = true;
+      PrintTextarea('Tentative de connexion au Racecar...');
 	    rbServer = new ROSLIB.Ros({
           // Assuming ros server IP is 10.42.0.1
           url : 'ws://' + inputData + ':9090'
 	        //url : 'ws://' + '127.0.0.1' + ':9090'
 	    });
 
+      connectionTimeout = setTimeout(function () {
+        if (!connectionEstablished) {
+        console.log('Connection attempt timed out.');
+        PrintTextarea('La connexion a expiré.');
+        updateConnectionStatus(false);
+        rbServer.close();
+        }
+        }, 8000);
+
         rbServer.on('connection', function(){
             console.log('Connected to websocket server.');
+            PrintTextarea('Connecté au Racecar!');
+            connectionEstablished = true;
+            updateConnectionStatus(true);
+              // Enable the buttons
+              document.getElementById("avancerButton").disabled = false;
+              document.getElementById("arreterButton").disabled = false;
+              document.getElementById("turnLeftButton").disabled = false;
+              document.getElementById("turnRightButton").disabled = false;
+              document.getElementById("reculerButton").disabled = false;
 
             // These lines create a topic object as defined by roslibjs
             cmdVelTopic = new ROSLIB.Topic({
@@ -160,13 +247,26 @@ Client-side:
 
         rbServer.on('error', function(error) {
           console.log('Error connecting to websocket server: ', error);
-          PrintTextarea('Erreur de connexion avec le Racecar!' + error);
+          PrintTextarea('Erreur de connexion avec le Racecar!');
+          updateConnectionStatus(false);
+          connectionEstablished = false;
 	    });
 
 	    rbServer.on('close', function() {
           console.log('Connection to websocket server closed.');
           PrintTextarea('Connextion fermee.');
+          updateConnectionStatus(false);
+          connectionEstablished = false;
 	    });
+      }
+
+      function updateConnectionStatus(connected) {
+        const statutTitle = document.querySelector("h1"); // Select the first h1 element (the title)
+        if (connected) {
+        statutTitle.style.color = "green";
+        } else {
+        statutTitle.style.color = "red";
+        }
       }
 
       // These lines create a message that conforms to the structure of the Twist defined in our ROS installation
