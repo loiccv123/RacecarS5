@@ -124,7 +124,7 @@ Client-side:
   <!-- Custom scripts -->
   <script>
       // Define some global variables
-      var rbServer = null;
+      var rbServer = 0;
       var cmdVelTopic = null;
       let previousConnectionStatus = false;
       // Define keysPressed as a global object
@@ -133,7 +133,9 @@ Client-side:
       //Some initializations after the page has been shown
       $(document).ready(function(){
         const username = sessionStorage.getItem('username');
-        const ipAddress = sessionStorage.getItem('ipAddress');
+        console.log(username);
+        const ipAddress = sessionStorage.getItem('password');
+        console.log(ipAddress);
 
         const usernameElement = document.getElementById('username');
         usernameElement.textContent = username;
@@ -143,11 +145,12 @@ Client-side:
 
         updateButtonStatus(false);
 
-        connectROS();
+        connectROS(ipAddress);
       });
 
-      const ipAddress = document.getElementById("ipAddress").value;
+      //const ipAddress = document.getElementById("ipAddress").value;
       var cameraImage = document.getElementById("cameraImage");
+      //cameraImage.src = "http://" + 'localhost' + ":8080/stream?topic=/racecar/raspicam_node/image_raw";
       cameraImage.src = "http://" + ipAddress + ":8080/stream?topic=/racecar/raspicam_node/image_raw";
 
       var sliderSpeed = document.getElementById("sliderSpeed");
@@ -168,8 +171,8 @@ Client-side:
 
   
       // Define some functions
-      function connectROS() {
-        const ipAddress = document.getElementById("ipAddress").value;
+      function connectROS(ipAddress) {
+        //const ipAddress = document.getElementById("ipAddress").value;
 
         PrintTextArea('Tentative de connexion à: '+ ipAddress);
         rbServer = new ROSLIB.Ros({
