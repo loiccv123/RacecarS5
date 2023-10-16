@@ -1,0 +1,406 @@
+<!doctype html>
+<html>
+<!-- 
+==References==
+Server-side:
+* http://docs.ros.org/indigo/api/roswww/html/
+* http://wiki.ros.org/web_video_server
+* http://wiki.ros.org/rosbridge_suite/Tutorials/RunningRosbridge
+
+Client-side:
+* http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality
+* https://getbootstrap.com/docs/4.0/getting-started/introduction/
+* https://getbootstrap.com/docs/4.0/layout/grid/
+-->
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <title>Main Page</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      .direction-buttons {
+          text-align: center;
+      }
+
+      .direction-button {
+        display: inline-block;
+        margin: 10px;
+        padding: 10px;
+        font-size: 24px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  
+</head>
+
+<body style="background-color: lightblue;">
+  <!-- Menu BEGIN-->
+  <div class="collapse" id="navbarToggleExternalContent">
+    <div class="bg-dark p-4">
+      <div class="row">
+        <h3 style="color: ghostwhite;"> Client </h3>
+        <button onclick = "closeSession();" style="color:red; min-width: 75px; float: right; margin-left: auto;"> Déconnection </button> 
+      </div>
+      <br>
+      <div class="row">
+        <h6 style="color: ghostwhite;">Username:&nbsp;</h6>
+        <h6 id="username" style="color: ghostwhite;">Placeholder</h6>
+      </div>
+      <div class="row">
+        <h6 style="color: ghostwhite;">Adresse IP:&nbsp;</h6>
+        <h6 id="ipAddress" style="color: ghostwhite;">Placeholder</h6>
+      </div>
+      <div class="row">
+        <h6 style="color: ghostwhite;">Status:&nbsp;</h6>
+        <h6 id="status" style="color: ghostwhite;">Placeholder</h6>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="row">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <h4 style="color: ghostwhite; margin-left: 10px;"> Configuration </h4>
+    </div>
+  </nav>
+  <!-- Menu END-->
+
+  <!-- Main layout BEGIN-->
+  <div class="container-fluid">
+    <div class="column" style="min-width: 125px; max-width: 350px;">
+        <h1> Log </h1>
+        <textarea id="Textarea" rows="4" cols="25" readonly style="background-color: lightgrey; width: 100%; height: 100%;"></textarea>
+        <br>       
+        <button onclick = "document.getElementById('Textarea').value = '';"> Effacer </button> 
+        <h1> Contrôle </h1>
+        <div class="row">
+          <h6>Status des Boutons:&nbsp;</h6>
+          <h6 id="StatusBoutons">Placeholder</h6>
+        </div>
+        <div class="slider-container">
+          <input type="range" min="0" max="100" value="50" class="slider" id="sliderSpeed" style="width: 80%; margin: 0 auto; text-align: center;">
+          <span id="sliderSpeed-value">50</span>
+          <input type="range" min="0" max="100" value="50" class="slider" id="sliderTurn" style="width: 80%; margin: 0 auto; text-align: center;">
+          <span id="sliderTurn-value">50</span>
+        </div>
+
+        <div class="direction-buttons" style="position: relative; align-items: center;">
+          <button id="ButtonUp" class="direction-button" onmousedown = "Avancer(sliderSpeed.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-up"></i></button>
+          <br>
+          <button id="ButtonLeft" class="direction-button" onmousedown = "Tourner(sliderSpeed.value/100, -sliderTurn.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-left"></i></button>
+          <button id="ButtonRight" class="direction-button" onmousedown = "Tourner(sliderSpeed.value/100, sliderTurn.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-right"></i></button>
+          <br>
+          <button id="ButtonDown" class="direction-button" onmousedown = "Avancer(-sliderSpeed.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-down"></i></button>
+        </div> 
+    </div>
+    <div id="video-container" style="margin-left: auto; overflow: hidden;">
+      <h1> Caméra </h1>
+      <img id="cameraImage" style="position: relative; width: 100%; height: 100%; object-fit: cover;">
+      <!--<div id="orange-placeholder" style="background-color: orange; padding-bottom: 56.25%;"></div>-->
+    </div> 
+  </div>
+  <!-- Main layout END-->
+  
+  <!-- JavaScript, import frameworks -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="js/jquery-3.3.1.slim.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/roslib.min.js"></script> <!-- rosbridge -->
+
+  <!-- Custom scripts -->
+  <script>
+      // Define some global variables
+      var rbServer = null;
+      var cmdVelTopic = null;
+      let previousConnectionStatus = false;
+      // Define keysPressed as a global object
+      var keysPressed = {};
+
+      //Some initializations after the page has been shown
+      $(document).ready(function(){
+        const username = sessionStorage.getItem('username');
+        const ipAddress = sessionStorage.getItem('ipAddress');
+
+        const usernameElement = document.getElementById('username');
+        usernameElement.textContent = username;
+
+        const ipAddressElement = document.getElementById('ipAddress');
+        ipAddressElement.textContent = ipAddress;
+
+        updateButtonStatus(false);
+
+        connectROS();
+      });
+
+      const ipAddress = document.getElementById("ipAddress").value;
+      var cameraImage = document.getElementById("cameraImage");
+      cameraImage.src = "http://" + ipAddress + ":8080/stream?topic=/racecar/raspicam_node/image_raw";
+
+      var sliderSpeed = document.getElementById("sliderSpeed");
+      var outputSpeed = document.getElementById("sliderSpeed-value");
+      outputSpeed.innerHTML = sliderSpeed.value;
+
+      sliderSpeed.oninput = function() {
+        outputSpeed.innerHTML = this.value;
+      };
+
+      var sliderTurn = document.getElementById("sliderTurn");
+      var outputTurn = document.getElementById("sliderTurn-value");
+      outputTurn.innerHTML = sliderTurn.value;
+
+      sliderTurn.oninput = function() {
+        outputTurn.innerHTML = this.value;
+      };
+
+  
+      // Define some functions
+      function connectROS() {
+        const ipAddress = document.getElementById("ipAddress").value;
+
+        PrintTextArea('Tentative de connexion à: '+ ipAddress);
+        rbServer = new ROSLIB.Ros({
+            // Assuming ros server IP is ipAddress
+          url : 'ws://'+ipAddress+':9090'
+        });
+
+        rbServer.on('connection', function(){
+            console.log('Connected to websocket server.');
+            PrintTextArea('Connecté au serveur');
+            // These lines create a topic object as defined by roslibjs
+            cmdVelTopic = new ROSLIB.Topic({
+                ros : rbServer,
+                name : '/racecar/cmd_vel_abtr_2',
+                messageType : 'geometry_msgs/Twist'
+            });
+            document.getElementById('status').textContent = 'Connecté';
+            previousConnectionStatus = true;
+            updateButtonStatus(true);
+        });
+
+        rbServer.on('error', function(error) {
+          console.log('Error connecting to websocket server: ', error);
+          PrintTextArea('Erreur de connexion' + error);
+          document.getElementById('status').textContent = 'Déconnecté';
+          previousConnectionStatus = false;
+          updateButtonStatus(false);
+        });
+
+        rbServer.on('close', function() {
+            console.log('Connection to websocket server closed.');
+            PrintTextArea('Fermeture de la connexion');
+            document.getElementById('status').textContent = 'Déconnecté';
+            previousConnectionStatus = false;
+            updateButtonStatus(false);
+            //closeSession()
+        });
+      }
+
+      // These lines create a message that conforms to the structure of the Twist defined in our ROS installation
+      // It initalizes all properties to zero. They will be set to appropriate values before we publish this message.
+      var twist = new ROSLIB.Message({
+           linear : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            },
+            angular : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            }
+      });
+
+      //Publishing loop cmd_vel at 5 Hz
+      setInterval(function(){
+        if(cmdVelTopic != null)
+        {
+          cmdVelTopic.publish(twist);
+        }
+      }, 200);
+
+      // Créez un intervalle pour vérifier périodiquement l'état de la connexion
+      const checkConnectionInterval = setInterval(function () {
+        if ((!rbServer === null || rbServer.isConnected === false) && previousConnectionStatus) {
+          Arreter();
+          updateButtonStatus(false);
+          document.getElementById('status').textContent = 'Déconnecté';
+          console.log('Disconnected from websocket server.');
+          PrintTextArea('Déconnecté du serveur');
+          previousConnectionStatus = false;
+        }
+        else if (rbServer.isConnected === true && !previousConnectionStatus) {
+          updateButtonStatus(true);
+          document.getElementById('status').textContent = 'Connecté';
+          console.log('connected to websocket server.');
+          PrintTextArea('Connecté au serveur');
+          previousConnectionStatus = true;
+        }
+      }, 200);
+
+      function Avancer(cmd_vitesse) {
+        twist.linear.x = cmd_vitesse;
+        PrintTextArea('Twist x = ' + cmd_vitesse);
+        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
+      }
+
+      function Tourner(cmd_vitesse, cmd_tourner) {
+        twist.linear.x = cmd_vitesse;
+        twist.angular.z = cmd_tourner;
+        PrintTextArea('Twist x = ' + cmd_vitesse);
+        PrintTextArea('Twist z = ' + cmd_tourner);
+        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
+      }
+
+      function TournerSurPlace(cmd_tourner) {
+        twist.angular.z = cmd_tourner;
+        PrintTextArea('Twist z = ' + cmd_tourner);
+        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
+      }
+
+      function Arreter() {
+        twist.linear.x = 0;
+        twist.linear.x = 0;
+        twist.linear.y = 0;
+        twist.linear.z = 0;
+        twist.angular.x = 0;
+        twist.angular.y = 0;
+        twist.angular.z = 0;
+        PrintTextArea('Twist reset');
+        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
+      }
+   
+      // Add an event listener for keydown events
+      document.addEventListener('keydown', function(event) {
+        var speed = sliderSpeed.value / 100;
+        var turn = sliderTurn.value / 100;
+
+        // Update the keysPressed object with the key that was pressed
+        keysPressed[event.key] = true;
+
+        // Check which keys are pressed and perform the corresponding actions
+        if (keysPressed['w'] && keysPressed['a']) {
+          // Handle the combination of 'w' and 'a' keys (e.g., move forward and turn left)
+          Avancer(speed);
+          TournerSurPlace(-turn);
+        } else if (keysPressed['w'] && keysPressed['d']) {
+          // Handle the combination of 'w' and 'd' keys (e.g., move forward and turn right)
+          Avancer(speed);
+          TournerSurPlace(turn);
+        } else if (keysPressed['s'] && keysPressed['a']) {
+          // Handle the combination of 's' and 'a' keys (e.g., move backward and turn left)
+          Avancer(-speed);
+          TournerSurPlace(-turn);
+        } else if (keysPressed['s'] && keysPressed['d']) {
+          // Handle the combination of 's' and 'd' keys (e.g., move backward and turn right)
+          Avancer(-speed);
+          TournerSurPlace(turn);
+        } else if (keysPressed['w']) {
+          // Handle 'w' key (e.g., move forward)
+          Avancer(speed);
+        } else if (keysPressed['a']) {
+          // Handle 'a' key (e.g., turn left)
+          TournerSurPlace(-turn);
+        } else if (keysPressed['d']) {
+          // Handle 'd' key (e.g., turn right)
+          TournerSurPlace(turn);
+        } else if (keysPressed['s']) {
+          // Handle 's' key (e.g., move backward)
+          Avancer(-speed);
+        }
+        else Arreter ();
+      });
+
+      // Add an event listener for keyup events
+      document.addEventListener('keyup', function(event) {
+        // Update the keysPressed object to reflect that a key was released
+        keysPressed[event.key] = false;
+
+        var speed = sliderSpeed.value / 100;
+        var turn = sliderTurn.value / 100;
+
+        // Check which keys are still pressed and perform the corresponding actions
+        if (keysPressed['w'] && keysPressed['a']) {
+          // Handle the combination of 'w' and 'a' keys (e.g., move forward and turn left)
+          Avancer(speed);
+          TournerSurPlace(-turn);
+        } else if (keysPressed['w'] && keysPressed['d']) {
+          // Handle the combination of 'w' and 'd' keys (e.g., move forward and turn right)
+          Avancer(speed);
+          TournerSurPlace(turn);
+        } else if (keysPressed['s'] && keysPressed['a']) {
+          // Handle the combination of 's' and 'a' keys (e.g., move backward and turn left)
+          Avancer(-speed);
+          TournerSurPlace(-turn);
+        } else if (keysPressed['s'] && keysPressed['d']) {
+          // Handle the combination of 's' and 'd' keys (e.g., move backward and turn right)
+          Avancer(-speed);
+          TournerSurPlace(turn);
+        } else if (keysPressed['w']) {
+          // Handle 'w' key (e.g., move forward)
+          Avancer(speed);
+          TournerSurPlace(0);
+        } else if (keysPressed['a']) {
+          // Handle 'a' key (e.g., turn left)
+          Avancer(0);
+          TournerSurPlace(-turn);
+        } else if (keysPressed['d']) {
+          // Handle 'd' key (e.g., turn right)
+          Avancer(0);
+          TournerSurPlace(turn);
+        } else if (keysPressed['s']) {
+          // Handle 's' key (e.g., move backward)
+          Avancer(-speed);
+          TournerSurPlace(0);
+        } else {
+          // If no keys are pressed, stop the movement
+          Arreter();
+        }
+      });
+
+      function PrintTextArea(text) {
+        var textarea = document.getElementById('Textarea');
+
+        textarea.value +=  text + '\n';
+
+        textarea.scrollTop = textarea.scrollHeight;
+      }
+
+      function updateButtonStatus(state) {
+        var forwardButton = document.getElementById('ButtonUp');
+        var leftButton = document.getElementById('ButtonLeft');
+        var rightButton = document.getElementById('ButtonRight');
+        var backwardButton = document.getElementById('ButtonDown');
+        var statusBoutons = document.getElementById('StatusBoutons');
+        
+        forwardButton.disabled = !state;
+        leftButton.disabled = !state;
+        rightButton.disabled = !state;
+        backwardButton.disabled = !state;
+
+        statusBoutons.textContent = state;
+      }
+
+      function closeSession() {
+        Arreter();
+        sessionStorage.setItem('username', null);
+        sessionStorage.setItem('password', null);
+        PrintTextArea('Fermeture de la connexion');
+        window.location.href = 'Login.html';
+      }
+  </script>
+</body>
+</html>
