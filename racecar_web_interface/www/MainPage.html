@@ -183,7 +183,7 @@ Client-side:
             // These lines create a topic object as defined by roslibjs
             cmdVelTopic = new ROSLIB.Topic({
                 ros : rbServer,
-                //name : '/racecar/cmd_vel_abtr_2',
+                //name : '/racecar/cmd_vel',
                 name : '/racecar/cmd_vel',
                 messageType : 'geometry_msgs/Twist'
             });
@@ -227,7 +227,6 @@ Client-side:
 
       //Publishing loop cmd_vel at 5 Hz
       setInterval(function(){
-        console.log('test');
         if(cmdVelTopic != null)
         {
           cmdVelTopic.publish(twist);
@@ -257,6 +256,10 @@ Client-side:
         console.log('Mousedown')
         twist.linear.x = cmd_vitesse;
         PrintTextArea('Twist x = ' + cmd_vitesse);
+        if(cmdVelTopic != null)
+        {
+          cmdVelTopic.publish(twist);
+        }
       }
 
       function Tourner(cmd_vitesse, cmd_tourner) {
@@ -264,11 +267,19 @@ Client-side:
         twist.angular.z = cmd_tourner;
         PrintTextArea('Twist x = ' + cmd_vitesse);
         PrintTextArea('Twist z = ' + cmd_tourner);
+        if(cmdVelTopic != null)
+        {
+          cmdVelTopic.publish(twist);
+        }
       }
 
       function TournerSurPlace(cmd_tourner) {
         twist.angular.z = cmd_tourner;
         PrintTextArea('Twist z = ' + cmd_tourner);
+        if(cmdVelTopic != null)
+        {
+          cmdVelTopic.publish(twist);
+        }
       }
 
       function Arreter() {
