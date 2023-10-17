@@ -1,18 +1,5 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<!-- 
-==References==
-Server-side:
-* http://docs.ros.org/indigo/api/roswww/html/
-* http://wiki.ros.org/web_video_server
-* http://wiki.ros.org/rosbridge_suite/Tutorials/RunningRosbridge
-
-Client-side:
-* http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality
-* https://getbootstrap.com/docs/4.0/getting-started/introduction/
-* https://getbootstrap.com/docs/4.0/layout/grid/
--->
-
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -22,283 +9,119 @@ Client-side:
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/dashboard.css">
 
-    <title>Racecar control GUI</title>
+    <title>Login</title>
 </head>
-
-<body style>
-    
-  <!-- Menu BEGIN-->
-  <div class="collapse" id="navbarToggleExternalContent">
-    <div class="bg-dark p-4">
-      <h6 class="text-white h4">Configuration</h6>
-      <form id="dataForm">
-        <label for="inputData" style="color: white;">ROS_master_IP:</label>
-        <input type="text" id="inputData" name="inputData">
-        <br> 
-        <label for="inputUsername" style="color: white;">Username:</label>
-        <input type="text" id="inputUsername" name="inputUsername" placeholder="Enter Username">
-        <br> 
-        <input type="submit" id="submitButton" value="Submit">
-      </form>
-    </div>
+<body style="background-color: lightblue;">
+  <div class="login-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(211, 211, 211, 0.75)">
+    <h1>Connexion au Racecar</h1>
+    <form id="loginForm" style="text-align: right;">
+        <label for="username">Nom d'utilisateur</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="ipAddress"> Adresse IP: </label>
+        <input type="text" id="ipAddress" name="ipAddress" placeholder="127.0.0.1" required>
+        <br>
+        <input type="submit" value="Soumettre">
+    </form>
   </div>
+<!-- Main layout END-->
 
-  <script>
-    function enableSubmitButton() {
-      var inputData = document.getElementById("inputData").value;
-      var inputUsername = document.getElementById("inputUsername").value;
-      var submitButton = document.getElementById("submitButton");
-    
-      if (inputData.trim() !== "" && inputUsername.trim() !== "") {
-        submitButton.disabled = false;
-      } else {
-        submitButton.disabled = true;
-      }
+<!-- JavaScript, import frameworks -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="js/jquery-3.3.1.slim.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/roslib.min.js"></script> <!-- rosbridge -->
+
+<script>
+
+// Define some global variables
+var rbServer = null;
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  connectROS();
+});
+
+// Define the timeout variable in the outer scope
+const timeout = 500;
+
+function connectROS() {
+  // Disable the submit button to prevent further connection attempt
+  document.querySelector('input[type="submit"]').disabled = true;
+  // This function connects to the rosbridge server
+  const ipAddress = document.getElementById("ipAddress").value;
+  const ipRegex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
+
+  if (!ipRegex.test(ipAddress)) {
+    alert("Invalid IP address format. Please enter a valid IP address.");
+    // Re-enable the submit button for re-submission
+    document.querySelector('input[type="submit"]').disabled = false;
+    return;
+  }
+  var enableSubmit = true;
+  // Use an XMLHttpRequest for the reachability check
+  checkServerReachability(ipAddress, function (isReachable) {
+
+    if (isReachable) {
+      enableSubmit = false;
+      // If the server is reachable, connect to the rosbridge server
+      rbServer = new ROSLIB.Ros({
+        url: 'ws://' + ipAddress + ':9090'
+      });
+
+      rbServer.on('connection', function () {
+        console.log('Connected to websocket server.');
+        // Redirect to the second page
+        sessionStorage.setItem('username', document.getElementById("username").value);
+        sessionStorage.setItem('ipAddress', ipAddress);
+        window.location.href = 'MainPage.html';
+      });
+
+      rbServer.on('error', function (error) {
+        console.log('Error connecting to websocket server: ', error);
+        // Re-enable the submit button for re-submission
+        document.querySelector('input[type="submit"]').disabled = false;
+      });
+
+      rbServer.on('close', function () {
+        console.log('Connection to websocket server closed.');
+        // Re-enable the submit button for re-submission
+        document.querySelector('input[type="submit"]').disabled = false;
+      });
+
+    } else if (enableSubmit){
+      // The server is not reachable
+      alert("The server at IP address " + ipAddress + " is not reachable. Please check the IP address and network connection.");
+      // Re-enable the submit button for re-submission
+      document.querySelector('input[type="submit"]').disabled = false;
     }
-    
-    // Call it once to initialize the button state
-    enableSubmitButton();
-    </script>
+  });
+}
 
-  <nav class="navbar navbar-dark bg-dark">
-    <div>
-    
-      <!--<form id = ­"Connection">
-        <label for="ipAdress"> ROS_master_IP: </label>
-        <input type="text" id="ipAdress" name="ipAdress" placeholder="Enter Robot IP"> </input>
-        <input type="submit" value="Submit and Display">
-        <button onclick="debugROS()"> Connect </button> 
-      </form>  -->
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-    </div>
-  </nav>
-  <!-- Menu END-->
 
-  <!-- Main layout BEGIN-->
-  <div class="container-fluid"  >
+function checkServerReachability(ipAddress, callback) {
+  var wsUrl = 'ws://' + ipAddress + ':9090';
+  var ws = new WebSocket(wsUrl);
+
+  // Set a timeout for the WebSocket connection attempt
+  var timer = setTimeout(function () {
+    ws.close(); // Close the connection if it's taking too long
+    callback(false); // Indicate that the server is not reachable
+  }, timeout);
+
+  ws.onopen = function () {
+    clearTimeout(timer); // Cancel the timeout since the connection succeeded
+    ws.close(); // Close the WebSocket connection
+    callback(true); // Indicate that the server is reachable
+  };
   
-    <div class="column">
-        <h1> Statut </h1>
-        <textarea id="myTextarea" rows="4" cols="25"> </textarea>
-        <br>       
-        <button class = "button" onclick="ClearTextarea()"> Effacer </button> 
-        <h1> Controle </h1>
-        <button class = "button" id="avancerButton" onclick="Avancer()"> Avancer </button>
-        <button class="button" id="reculerButton" onclick="Reculer()"> Reculer </button>
-        <br>
-        <button class="button" id="turnLeftButton" onclick="TurnLeft()"> Tourner à gauche </button>
-        <button class="button" id="turnRightButton" onclick="TurnRight()"> Tourner à droite </button>
-        <br>
-        <button class = "button" id="arreterButton" onclick="Arreter()"> Arreter </button>
+  ws.onclose = function () {
+    clearTimeout(timer); // Cancel the timeout since the connection was closed
+    callback(false); // Indicate that the server is not reachable
+  };
+}     
 
-        <!-- <button onclick="PrintTextarea('En avant!')"> Avancer </button> -->
-        <!-- <button onclick="PrintTextarea('Arret!')"> Arreter </button> -->
-    </div>
-    <div class="column">
-    <h1> Camera </h1>
-    <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image_raw">
-    <!-- <img source src="http://localhost:8080/stream?topic=/racecar/raspicam_node/image&type=ros_compressed"> </img> -->
-    </div>
-
-  </div>
-  <!-- Main layout END-->
-  
-  <!-- JavaScript, import frameworks -->
-  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-  <script src="js/jquery-3.3.1.slim.min.js"></script>
-  <script src="js/popper.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/roslib.min.js"></script> <!-- rosbridge -->
-
-  <!-- Custom scripts -->
-  <script>
-      // Define some global variables
-      var rbServer = null;
-      var cmdVelTopic = null;
-
-      //Some initializations after the page has been shown
-      $(document).ready(function(){
-        //document.getElementById("log").value = 'Default text\n'
-        document.getElementById("avancerButton").disabled = true;
-        document.getElementById("arreterButton").disabled = true;
-        document.getElementById("turnLeftButton").disabled = true;
-        document.getElementById("turnRightButton").disabled = true;
-        document.getElementById("reculerButton").disabled = true;
-
-        document.getElementById("inputData").addEventListener("input", enableSubmitButton);
-        document.getElementById("inputUsername").addEventListener("input", enableSubmitButton);
-      });
-
-      //ACTIVITE 1
-      function PrintTextarea(message) {
-        var textarea = document.getElementById("myTextarea");
-            var currentText = textarea.value;
-            if (currentText !== "") {
-                 var updatedText = currentText + "\n" + message;
-            }
-            else {
-                  var updatedText = message;
-                 }    
-            textarea.value = updatedText;
-      }
-
-      //ACTIVITE 2
-      function Avancer() {
-        var textarea = document.getElementById("myTextarea");
-        twist.linear.x = 1.0;
-        twist.angular.z = 0.0;
-        PrintTextarea('En avant!');
-      }
-      function Arreter() {
-        var textarea = document.getElementById("myTextarea");
-        twist.linear.x = 0.0;
-        twist.angular.z = 0.0;
-        PrintTextarea('Arrêt!');
-      }
-
-      function TurnLeft() {
-        var textarea = document.getElementById("myTextarea");
-        twist.linear.x = 1.0;
-        twist.angular.z = 1.0;
-        PrintTextarea('Tourner à gauche!');
-        }
-
-      function TurnRight() {
-        var textarea = document.getElementById("myTextarea");
-        twist.linear.x = 1.0;
-        twist.angular.z = -1.0;
-        PrintTextarea('Tourner à droite!');
-        }
-
-      function Reculer() {
-        var textarea = document.getElementById("myTextarea");
-        twist.linear.x = -1.0;
-        PrintTextarea('Reculer!');
-        }
-
-      function ClearTextarea() {
-            var textarea = document.getElementById("myTextarea");
-            textarea.value = "";      
-      }
-      
-      document.getElementById("dataForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        const inputDataField = document.getElementById("inputData");
-        const inputData = inputDataField.value;
-        console.log(inputData);
-        connectROS(inputData);
-      });
-
-      
-      // document.getElementById("dataForm").addEventListener("submit", function(event) {
-      //   event.preventDefault(); 
-      //   const inputData = document.getElementById("inputData").value;
-      //   const newURL = "index.html?inputData=" + encodeURIComponent(inputData);
-      //   window.open(newURL, "_blank");
-      //  });
-      var connectionTimeout;
-      var connectionEstablished;
-
-      function connectROS(inputData) {
-        // This function connects to the rosbridge server
-      clearTimeout(connectionTimeout);
-      console.log("connectROS");
-      connectionEstablished = false;
-      document.getElementById("avancerButton").disabled = true;
-      document.getElementById("arreterButton").disabled = true;
-      document.getElementById("turnLeftButton").disabled = true;
-      document.getElementById("turnRightButton").disabled = true;
-      document.getElementById("reculerButton").disabled = true;
-      PrintTextarea('Tentative de connexion au Racecar...');
-	    rbServer = new ROSLIB.Ros({
-          // Assuming ros server IP is 10.42.0.1
-          url : 'ws://' + inputData + ':9090'
-	        //url : 'ws://' + '127.0.0.1' + ':9090'
-	    });
-
-      connectionTimeout = setTimeout(function () {
-        if (!connectionEstablished) {
-        console.log('Connection attempt timed out.');
-        PrintTextarea('La connexion a expiré.');
-        updateConnectionStatus(false);
-        rbServer.close();
-        }
-        }, 8000);
-
-        rbServer.on('connection', function(){
-            console.log('Connected to websocket server.');
-            PrintTextarea('Connecté au Racecar!');
-            connectionEstablished = true;
-            updateConnectionStatus(true);
-              // Enable the buttons
-              document.getElementById("avancerButton").disabled = false;
-              document.getElementById("arreterButton").disabled = false;
-              document.getElementById("turnLeftButton").disabled = false;
-              document.getElementById("turnRightButton").disabled = false;
-              document.getElementById("reculerButton").disabled = false;
-
-            // These lines create a topic object as defined by roslibjs
-            cmdVelTopic = new ROSLIB.Topic({
-                ros : rbServer,
-                name : '/racecar/cmd_vel_abtr_2',
-                messageType : 'geometry_msgs/Twist'
-            });
-	    });
-
-        rbServer.on('error', function(error) {
-          console.log('Error connecting to websocket server: ', error);
-          PrintTextarea('Erreur de connexion avec le Racecar!');
-          updateConnectionStatus(false);
-          connectionEstablished = false;
-	    });
-
-	    rbServer.on('close', function() {
-          console.log('Connection to websocket server closed.');
-          PrintTextarea('Connextion fermee.');
-          updateConnectionStatus(false);
-          document.getElementById("avancerButton").disabled = true;
-          document.getElementById("arreterButton").disabled = true;
-          document.getElementById("turnLeftButton").disabled = true;
-          document.getElementById("turnRightButton").disabled = true;
-          document.getElementById("reculerButton").disabled = true;
-          connectionEstablished = false;
-	    });
-      }
-
-      function updateConnectionStatus(connected) {
-        const statutTitle = document.querySelector("h1"); // Select the first h1 element (the title)
-        if (connected) {
-        statutTitle.style.color = "green";
-        } else {
-        statutTitle.style.color = "red";
-        }
-      }
-
-      // These lines create a message that conforms to the structure of the Twist defined in our ROS installation
-      // It initalizes all properties to zero. They will be set to appropriate values before we publish this message.
-      var twist = new ROSLIB.Message({
-           linear : {
-                x : 0.0,
-                y : 0.0,
-                z : 0.0
-            },
-            angular : {
-                x : 0.0,
-                y : 0.0,
-                z : 0.0
-            }
-      });
-
-      //Publishing loop cmd_vel at 5 Hz
-      setInterval(function(){
-           if(cmdVelTopic != null)
-           {
-             cmdVelTopic.publish(twist);
-           }
-      }, 200);
-
-  </script>
+</script>
 </body>
 </html>

@@ -124,18 +124,18 @@ Client-side:
   <!-- Custom scripts -->
   <script>
       // Define some global variables
-      var rbServer = 0;
+      var rbServer = null;
       var cmdVelTopic = null;
       let previousConnectionStatus = false;
+      var username = null;
+      var ipAddress = null;
       // Define keysPressed as a global object
       var keysPressed = {};
 
       //Some initializations after the page has been shown
       $(document).ready(function(){
-        const username = sessionStorage.getItem('username');
-        console.log(username);
-        const ipAddress = sessionStorage.getItem('password');
-        console.log(ipAddress);
+        username = sessionStorage.getItem('username');
+        ipAddress = sessionStorage.getItem('ipAddress');
 
         const usernameElement = document.getElementById('username');
         usernameElement.textContent = username;
@@ -143,15 +143,13 @@ Client-side:
         const ipAddressElement = document.getElementById('ipAddress');
         ipAddressElement.textContent = ipAddress;
 
+        var cameraImage = document.getElementById("cameraImage");
+        cameraImage.src = "http://"+ipAddress+":8080/stream?topic=/racecar/raspicam_node/image_raw";
+
         updateButtonStatus(false);
 
-        connectROS(ipAddress);
+        connectROS();
       });
-
-      //const ipAddress = document.getElementById("ipAddress").value;
-      var cameraImage = document.getElementById("cameraImage");
-      //cameraImage.src = "http://" + 'localhost' + ":8080/stream?topic=/racecar/raspicam_node/image_raw";
-      cameraImage.src = "http://" + ipAddress + ":8080/stream?topic=/racecar/image/&type=ros_compressed";
 
       var sliderSpeed = document.getElementById("sliderSpeed");
       var outputSpeed = document.getElementById("sliderSpeed-value");
@@ -171,9 +169,7 @@ Client-side:
 
   
       // Define some functions
-      function connectROS(ipAddress) {
-        //const ipAddress = document.getElementById("ipAddress").value;
-
+      function connectROS() {
         PrintTextArea('Tentative de connexion à: '+ ipAddress);
         rbServer = new ROSLIB.Ros({
             // Assuming ros server IP is ipAddress
