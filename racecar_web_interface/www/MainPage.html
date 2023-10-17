@@ -144,7 +144,8 @@ Client-side:
         ipAddressElement.textContent = ipAddress;
 
         var cameraImage = document.getElementById("cameraImage");
-        cameraImage.src = "http://"+ipAddress+":8080/stream?topic=/racecar/raspicam_node/image_raw";
+        cameraImage.src = "http://localhost:8080/stream?topic=/racecar/raspicam_node/image&type=ros_compressed";
+        //cameraImage.src = "http://"+'ipAddress'+":8080/stream?topic=/racecar/raspicam_node/image_raw";
 
         updateButtonStatus(false);
 
@@ -182,7 +183,8 @@ Client-side:
             // These lines create a topic object as defined by roslibjs
             cmdVelTopic = new ROSLIB.Topic({
                 ros : rbServer,
-                name : '/racecar/cmd_vel_abtr_2',
+                //name : '/racecar/cmd_vel_abtr_2',
+                name : '/racecar/cmd_vel',
                 messageType : 'geometry_msgs/Twist'
             });
             document.getElementById('status').textContent = 'Connecté';
@@ -225,6 +227,7 @@ Client-side:
 
       //Publishing loop cmd_vel at 5 Hz
       setInterval(function(){
+        console.log('test');
         if(cmdVelTopic != null)
         {
           cmdVelTopic.publish(twist);
@@ -251,9 +254,9 @@ Client-side:
       }, 200);
 
       function Avancer(cmd_vitesse) {
+        console.log('Mousedown')
         twist.linear.x = cmd_vitesse;
         PrintTextArea('Twist x = ' + cmd_vitesse);
-        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
       }
 
       function Tourner(cmd_vitesse, cmd_tourner) {
@@ -261,16 +264,15 @@ Client-side:
         twist.angular.z = cmd_tourner;
         PrintTextArea('Twist x = ' + cmd_vitesse);
         PrintTextArea('Twist z = ' + cmd_tourner);
-        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
       }
 
       function TournerSurPlace(cmd_tourner) {
         twist.angular.z = cmd_tourner;
         PrintTextArea('Twist z = ' + cmd_tourner);
-        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
       }
 
       function Arreter() {
+        console.log('Mouseup')
         twist.linear.x = 0;
         twist.linear.x = 0;
         twist.linear.y = 0;
@@ -279,11 +281,11 @@ Client-side:
         twist.angular.y = 0;
         twist.angular.z = 0;
         PrintTextArea('Twist reset');
-        if (cmdVelTopic != null) cmdVelTopic.publish(twist);
       }
    
       // Add an event listener for keydown events
       document.addEventListener('keydown', function(event) {
+        console.log('keydown');
         var speed = sliderSpeed.value / 100;
         var turn = sliderTurn.value / 100;
 
@@ -325,49 +327,50 @@ Client-side:
 
       // Add an event listener for keyup events
       document.addEventListener('keyup', function(event) {
+        console.log('keyup');
         // Update the keysPressed object to reflect that a key was released
         keysPressed[event.key] = false;
 
         var speed = sliderSpeed.value / 100;
         var turn = sliderTurn.value / 100;
-
-        // Check which keys are still pressed and perform the corresponding actions
-        if (keysPressed['w'] && keysPressed['a']) {
-          // Handle the combination of 'w' and 'a' keys (e.g., move forward and turn left)
-          Avancer(speed);
-          TournerSurPlace(-turn);
-        } else if (keysPressed['w'] && keysPressed['d']) {
-          // Handle the combination of 'w' and 'd' keys (e.g., move forward and turn right)
-          Avancer(speed);
-          TournerSurPlace(turn);
-        } else if (keysPressed['s'] && keysPressed['a']) {
-          // Handle the combination of 's' and 'a' keys (e.g., move backward and turn left)
-          Avancer(-speed);
-          TournerSurPlace(-turn);
-        } else if (keysPressed['s'] && keysPressed['d']) {
-          // Handle the combination of 's' and 'd' keys (e.g., move backward and turn right)
-          Avancer(-speed);
-          TournerSurPlace(turn);
-        } else if (keysPressed['w']) {
-          // Handle 'w' key (e.g., move forward)
-          Avancer(speed);
-          TournerSurPlace(0);
-        } else if (keysPressed['a']) {
-          // Handle 'a' key (e.g., turn left)
-          Avancer(0);
-          TournerSurPlace(-turn);
-        } else if (keysPressed['d']) {
-          // Handle 'd' key (e.g., turn right)
-          Avancer(0);
-          TournerSurPlace(turn);
-        } else if (keysPressed['s']) {
-          // Handle 's' key (e.g., move backward)
-          Avancer(-speed);
-          TournerSurPlace(0);
-        } else {
-          // If no keys are pressed, stop the movement
-          Arreter();
-        }
+        
+            // Check which keys are still pressed and perform the corresponding actions
+            if (keysPressed['w'] && keysPressed['a']) {
+              // Handle the combination of 'w' and 'a' keys (e.g., move forward and turn left)
+              Avancer(speed);
+              TournerSurPlace(-turn);
+            } else if (keysPressed['w'] && keysPressed['d']) {
+              // Handle the combination of 'w' and 'd' keys (e.g., move forward and turn right)
+              Avancer(speed);
+              TournerSurPlace(turn);
+            } else if (keysPressed['s'] && keysPressed['a']) {
+              // Handle the combination of 's' and 'a' keys (e.g., move backward and turn left)
+              Avancer(-speed);
+              TournerSurPlace(-turn);
+            } else if (keysPressed['s'] && keysPressed['d']) {
+              // Handle the combination of 's' and 'd' keys (e.g., move backward and turn right)
+              Avancer(-speed);
+              TournerSurPlace(turn);
+            } else if (keysPressed['w']) {
+              // Handle 'w' key (e.g., move forward)
+              Avancer(speed);
+              TournerSurPlace(0);
+            } else if (keysPressed['a']) {
+              // Handle 'a' key (e.g., turn left)
+              Avancer(0);
+              TournerSurPlace(-turn);
+            } else if (keysPressed['d']) {
+              // Handle 'd' key (e.g., turn right)
+              Avancer(0);
+              TournerSurPlace(turn);
+            } else if (keysPressed['s']) {
+              // Handle 's' key (e.g., move backward)
+              Avancer(-speed);
+              TournerSurPlace(0);
+            } else {
+              // If no keys are pressed, stop the movement
+              Arreter();
+            }
       });
 
       function PrintTextArea(text) {
