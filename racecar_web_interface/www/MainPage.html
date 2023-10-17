@@ -80,24 +80,25 @@ Client-side:
 
   <!-- Main layout BEGIN-->
   <div class="container-fluid">
-    <div class="column" style="min-width: 125px; max-width: 350px;">
+    <div class="row">
+      <div class="col-12 col-md-4">
+      <!-- <div class="column" style="min-width: 125px; max-width: 350px;"> -->
         <h1> Log </h1>
-        <textarea id="Textarea" rows="4" cols="25" readonly style="background-color: lightgrey; width: 100%; height: 100%;"></textarea>
+        <textarea id="Textarea" rows="4" cols="25" readonly style="background-color: lightgrey; width: 75%; height: 35%;"></textarea>
         <br>       
         <button onclick = "document.getElementById('Textarea').value = '';"> Effacer </button> 
         <h1> Contrôle </h1>
-        <div class="row">
+        <!-- <div class="row"> -->
           <h6>Status des Boutons:&nbsp;</h6>
           <h6 id="StatusBoutons">Placeholder</h6>
-        </div>
+        <!-- </div> -->
         <div class="slider-container">
           <input type="range" min="0" max="100" value="50" class="slider" id="sliderSpeed" style="width: 80%; margin: 0 auto; text-align: center;">
           <span id="sliderSpeed-value">50</span>
           <input type="range" min="0" max="100" value="50" class="slider" id="sliderTurn" style="width: 80%; margin: 0 auto; text-align: center;">
           <span id="sliderTurn-value">50</span>
         </div>
-
-        <div class="direction-buttons" style="position: relative; align-items: center;">
+        <div class="direction-buttons" style="position: relative; align-items: center; min-height:500px;">
           <button id="ButtonUp" class="direction-button" onmousedown = "Avancer(sliderSpeed.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-up"></i></button>
           <br>
           <button id="ButtonLeft" class="direction-button" onmousedown = "Tourner(sliderSpeed.value/100, -sliderTurn.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-left"></i></button>
@@ -105,13 +106,16 @@ Client-side:
           <br>
           <button id="ButtonDown" class="direction-button" onmousedown = "Avancer(-sliderSpeed.value/100)" onmouseup = "Arreter();"><i class="fas fa-arrow-down"></i></button>
         </div> 
+      </div>  
+      <div class="col-12 col-md-4" id="video-container">
+      <!-- <div id="video-container" style="margin-left: auto; overflow: hidden;"> -->
+        <h1> Caméra </h1>
+        <img id="cameraImage" style="position: relative; width: 100%; height: 100%; object-fit: cover;">
+        <!--<div id="orange-placeholder" style="background-color: orange; padding-bottom: 56.25%;"></div>-->
+      </div> 
     </div>
-    <div id="video-container" style="margin-left: auto; overflow: hidden;">
-      <h1> Caméra </h1>
-      <img id="cameraImage" style="position: relative; width: 100%; height: 100%; object-fit: cover;">
-      <!--<div id="orange-placeholder" style="background-color: orange; padding-bottom: 56.25%;"></div>-->
-    </div> 
-  </div>
+  </div> 
+
   <!-- Main layout END-->
   
   <!-- JavaScript, import frameworks -->
@@ -283,7 +287,7 @@ Client-side:
       }
    
       // Add an event listener for keydown events
-      document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function(event) {
         var speed = sliderSpeed.value / 100;
         var turn = sliderTurn.value / 100;
 
