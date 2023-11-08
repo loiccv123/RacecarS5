@@ -98,7 +98,7 @@ class teleop(object):
                 self.cmd_msg.linear.z  = 2 # Control mode
                 
             #If right joy pushed
-            elif(joy_msg.buttons[11]):
+            elif(joy_msg.buttons[10]):
                  # Template for a custom mode
                 self.cmd_msg.linear.x  = 0
                 self.cmd_msg.angular.z = 0

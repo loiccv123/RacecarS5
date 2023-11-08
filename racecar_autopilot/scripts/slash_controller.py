@@ -36,7 +36,7 @@ class slash_controller(object):
         # References Inputs
         self.propulsion_ref  = 0
         self.steering_ref    = 0
-        self.high_level_mode = 0  # Control mode of this controller node
+        self.high_level_mode = 3  # Control mode of this controller node
         
         # Ouput commands
         self.propulsion_cmd = 0  # Command sent to propulsion
@@ -100,6 +100,9 @@ class slash_controller(object):
                 # x = [ ?,? ,.... ]
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
+                
+                rospy.loginfo("This is an informational message.")
+
             
                 x = [[self.velocity], [self.laser_dy_fill], [self.laser_theta]]
                 r = [2, 0, 0]
@@ -107,8 +110,14 @@ class slash_controller(object):
                 u = self.controller1( x , r )
 
                 self.steering_cmd   = u[1] + self.steering_offset
-                self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 2    # Mode ??? on arduino
+                """self.propulsion_cmd = u[0]     
+                self.arduino_mode   = 2    # Mode ??? on arduio"""
+                
+                # Closed-loop velocity on arduino
+                self.propulsion_cmd = self.propulsion_ref
+                self.arduino_mode   = 2  
+                self.steering_cmd   = self.steering_ref + self.steering_offset 
+
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
@@ -132,6 +141,7 @@ class slash_controller(object):
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
                 self.arduino_mode   = 3 # Mode ??? on arduino
+                
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
