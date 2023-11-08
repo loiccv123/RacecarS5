@@ -165,16 +165,22 @@ class slash_controller(object):
 
         # Control Law TODO
         
-        u = np.dot( self.K_autopilot , (r - y) )
+        u = np.dot( self.K_autopilot , (r - y))
+        
+        if(u[1]>0.5):
+            u[1]=0.5
         
         return u
 
     #######################################
-    def controller2(self, y , r ):
+    def controller2(self, y , r):
 
         # Control Law TODO
         
-        u = np.dot( self.K_parking , (r - y) )
+        u = np.dot( self.K_parking , (r - y))
+        
+        if(u[1]>0.5):
+            u[1]=0.5
         
         return u
 
