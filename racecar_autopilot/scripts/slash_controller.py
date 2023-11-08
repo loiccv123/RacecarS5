@@ -105,7 +105,7 @@ class slash_controller(object):
 
             
                 x = [[self.velocity], [self.laser_dy_fill], [self.laser_theta]]
-                r = [2, 0, 0]
+                r = [[2], [0], [0]]
                 
                 u = self.controller1( x , r )
 
@@ -133,8 +133,8 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
                 
-                x = None
-                r = None
+                x = [[self.position], [self.laser_dy_fill], [self.laser_theta]]
+                r = [[2], [0], [0]]
                 
                 u = self.controller2( x , r )
 
@@ -175,16 +175,22 @@ class slash_controller(object):
 
         # Control Law TODO
         
-        u = np.dot( self.K_autopilot , (r - y) )
+        u = np.dot( self.K_autopilot , (r - y))
+        
+        if(u[1]>0.5):
+            u[1]=0.5
         
         return u
 
     #######################################
-    def controller2(self, y , r ):
+    def controller2(self, y , r):
 
         # Control Law TODO
         
-        u = np.dot( self.K_parking , (r - y) )
+        u = np.dot( self.K_parking , (r - y))
+        
+        if(u[1]>0.5):
+            u[1]=0.5
         
         return u
 
