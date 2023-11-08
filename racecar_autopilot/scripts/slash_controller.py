@@ -28,7 +28,7 @@ class slash_controller(object):
         # Controller        
         self.steering_offset = 0.0 # To adjust according to the vehicle
         
-        self.K_autopilot =  np.array([[0.4087, 0, 0], [0, 3.1623, 1.4133]])
+        self.K_autopilot =  np.array([[0.4087*6, 0, 0], [0, 3.1623*0.15, -1.4133*0.2]])
         self.K_parking   =  np.array([[0.4763, 0, 0], [0, 0.0937, 0.3]])
         
         # Memory
@@ -36,7 +36,7 @@ class slash_controller(object):
         # References Inputs
         self.propulsion_ref  = 0
         self.steering_ref    = 0
-        self.high_level_mode = 3  # Control mode of this controller node
+        self.high_level_mode = 0  # Control mode of this controller node
         
         # Ouput commands
         self.propulsion_cmd = 0  # Command sent to propulsion
@@ -81,6 +81,7 @@ class slash_controller(object):
                 self.propulsion_cmd = self.propulsion_ref
                 self.arduino_mode   = 2  
                 self.steering_cmd   = self.steering_ref + self.steering_offset 
+                rospy.logwarn("self.steering_cmd_controller : "+str(self.steering_ref)                  +"self.propulsion_cmd_controller : "+str(self.propulsion_ref))
                 
             elif ( self.high_level_mode == 2 ):
                 # Closed-loop position on arduino
@@ -100,23 +101,17 @@ class slash_controller(object):
                 # x = [ ?,? ,.... ]
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
-                
-                rospy.loginfo("This is an informational message.")
 
-            
-                x = [[self.velocity], [self.laser_dy_fill], [self.laser_theta]]
-                r = [[2], [0], [0]]
+                x = np.array([[self.velocity], [self.laser_dy_fill], [self.laser_theta]])
+                r = np.array([[2], [0], [0]])
                 
                 u = self.controller1( x , r )
 
-                self.steering_cmd   = u[1] + self.steering_offset
-                """self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 2    # Mode ??? on arduio"""
+                rospy.logwarn("self.steering_cmd : "+str(u[1])+"self.propulsion_cmd : "+str(u[0]))
                 
-                # Closed-loop velocity on arduino
-                self.propulsion_cmd = self.propulsion_ref
-                self.arduino_mode   = 2  
-                self.steering_cmd   = self.steering_ref + self.steering_offset 
+                self.steering_cmd   = u[1] + self.steering_offset
+                self.propulsion_cmd = u[0]     
+                self.arduino_mode   = 1
 
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
@@ -133,8 +128,8 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
                 
-                x = [[self.position], [self.laser_dy_fill], [self.laser_theta]]
-                r = [[2], [0], [0]]
+                x = np.array([[self.velocity], [self.laser_dy_fill], [self.laser_theta]])
+                r = np.array([[2], [0], [0]])
                 
                 u = self.controller2( x , r )
 
@@ -171,23 +166,19 @@ class slash_controller(object):
 
         
     #######################################
-    def controller1(self, y , r):
-
-        # Control Law TODO
-        
-        u = np.dot( self.K_autopilot , (r - y))
-        
-        if(u[1]>0.5):
-            u[1]=0.5
-        
+    def controller1(self, x , r):
+        """self.K_autopilot = np.array([[0.4087, 0, 0], [0, 3.1623, 1.4133]])        
+        r = np.array([[2], [3], [4]])
+        x = np.array([[1], [1], [1]])"""
+        u = np.dot( self.K_autopilot , (r - x))
         return u
 
     #######################################
-    def controller2(self, y , r):
+    def controller2(self, x , r):
 
         # Control Law TODO
         
-        u = np.dot( self.K_parking , (r - y))
+        u = np.dot( self.K_parking , (r - x))
         
         if(u[1]>0.5):
             u[1]=0.5
