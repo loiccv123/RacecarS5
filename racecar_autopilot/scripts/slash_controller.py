@@ -28,9 +28,8 @@ class slash_controller(object):
         # Controller        
         self.steering_offset = 0.0 # To adjust according to the vehicle
         
-        self.K_autopilot =  None # TODO: DESIGN LQR
-    
-        self.K_parking   =  None # TODO: DESIGN PLACEMENT DE POLES
+        self.K_autopilot =  np.array([[0.4087, 0, 0], [0, 3.1623, 1.4133]])
+        self.K_parking   =  np.array([[0.4763, 0, 0], [0, 0.0937, 0.3]])
         
         # Memory
         
@@ -101,15 +100,15 @@ class slash_controller(object):
                 # x = [ ?,? ,.... ]
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
-
-                x = None
-                r = None
+            
+                x = [[self.velocity], [self.laser_dy_fill], [self.laser_theta]]
+                r = [2, 0, 0]
                 
                 u = self.controller1( x , r )
 
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 0    # Mode ??? on arduino
+                self.arduino_mode   = 2    # Mode ??? on arduino
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
@@ -119,7 +118,7 @@ class slash_controller(object):
                 #########################################################
                 # TODO: COMPLETEZ LE CONTROLLER
                 
-                # Auto-pilot # 1 
+                # Stationnement # 1 
                 
                 # x = [ ?,? ,.... ]
                 # r = [ ?,? ,.... ]
@@ -132,7 +131,7 @@ class slash_controller(object):
 
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 0 # Mode ??? on arduino
+                self.arduino_mode   = 3 # Mode ??? on arduino
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
@@ -165,10 +164,8 @@ class slash_controller(object):
     def controller1(self, y , r):
 
         # Control Law TODO
-
-        u = np.array([ 0 , 0 ]) # placeholder
         
-        #u = np.dot( self.K_autopilot , (r - x) )
+        u = np.dot( self.K_autopilot , (r - y) )
         
         return u
 
@@ -176,10 +173,8 @@ class slash_controller(object):
     def controller2(self, y , r ):
 
         # Control Law TODO
-
-        u = np.array([ 0 , 0 ]) # placeholder
         
-        #u = np.dot( self.K_parking , (r - x) )
+        u = np.dot( self.K_parking , (r - y) )
         
         return u
 
