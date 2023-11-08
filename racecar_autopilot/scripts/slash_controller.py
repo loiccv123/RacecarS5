@@ -102,7 +102,7 @@ class slash_controller(object):
                 # u = [ servo_cmd , prop_cmd ]
             
                 x = [[self.velocity], [self.laser_dy_fill], [self.laser_theta]]
-                r = [2, 0, 0]
+                r = [[2], [0], [0]]
                 
                 u = self.controller1( x , r )
 
@@ -124,8 +124,8 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
                 
-                x = None
-                r = None
+                x = [[self.position], [self.laser_dy_fill], [self.laser_theta]]
+                r = [[2], [0], [0]]
                 
                 u = self.controller2( x , r )
 

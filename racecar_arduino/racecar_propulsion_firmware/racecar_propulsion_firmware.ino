@@ -315,7 +315,7 @@ void ctl(){
   /////////////////////////////////////////////// 
   
   // Servo Open-Loop fonction
-  ser_pwm      = ser2pwm( ser_ref ) ;
+  ser_pwm  = ser2pwm( ser_ref ) ;
   steeringServo.write(ser_pwm) ; 
   
   ///////////////////////////////////////////////
@@ -385,7 +385,7 @@ void ctl(){
     }
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
     pos_ref = dri_ref;
-    pos_error = (start_pos+pos_ref) - pos_now;                           // TODO
+    pos_error = (start_pos+pos_ref) - pos_now;               // TODO
     pos_error_ddt = (pos_error - pos_error_last) / PERIODE;  // TODO
     pos_error_int += pos_error * PERIODE;                    // TODO
     pos_error_last = pos_error;
