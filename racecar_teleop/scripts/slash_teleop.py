@@ -51,6 +51,7 @@ class teleop(object):
             #If right button is active       
             if (joy_msg.buttons[5]):   
                 # Fully Open-Loop
+                rospy.logwarn("Fully Open Loop, OL Steering - Control mode 3 (Right Button)")            
                 self.cmd_msg.linear.x  = propulsion_user_input * self.max_volt #[volts]
                 self.cmd_msg.angular.z = steering_user_input * self.cmd2rad
                 self.cmd_msg.linear.z  = 1   #CtrlChoice
@@ -58,6 +59,7 @@ class teleop(object):
             #If right trigger is active       
             elif (joy_msg.buttons[7]):   
                 # Closed-loop position, Open-loop steering
+                rospy.logwarn("Cl Position, OL Steering - Control mode 3 (Right Trigger)")            
                 self.cmd_msg.linear.x  = 1 # [m]
                 self.cmd_msg.angular.z = steering_user_input * self.cmd2rad
                 self.cmd_msg.linear.z  = 3   #CtrlChoice
@@ -65,6 +67,7 @@ class teleop(object):
             #If button A is active 
             elif(joy_msg.buttons[1]):   
                 # Closed-loop velocity, Closed-loop steering 
+                rospy.logwarn("Autopilot - Control mode 3 (Button A)")            
                 self.cmd_msg.linear.x  = propulsion_user_input * self.max_vel #[m/s]
                 self.cmd_msg.angular.z = steering_user_input # [m]
                 self.cmd_msg.linear.z  = 3  # Control mode
@@ -72,6 +75,7 @@ class teleop(object):
             #If button B is active 
             elif(joy_msg.buttons[2]):   
                 # Closed-loop position, Closed-loop steering 
+                rospy.logwarn("Parking - Control mode 4 (Button B)")            
                 self.cmd_msg.linear.x  = propulsion_user_input # [m]
                 self.cmd_msg.angular.z = steering_user_input # [m]
                 self.cmd_msg.linear.z  = 4  # Control mode
@@ -79,6 +83,7 @@ class teleop(object):
             #If No idea what button it is 
             elif(joy_msg.buttons[8]):   
                 # Closed-loop velocity with fixed 1 m/s ref, Closed-loop steering
+                rospy.logwarn("CL Velocity, CL Steering - Control mode 5 (No idea what button it is)")            
                 self.cmd_msg.linear.x  = 2 #[m/s]
                 self.cmd_msg.angular.z = 0 # [m]
                 self.cmd_msg.linear.z  = 5  # Control mode
@@ -86,6 +91,7 @@ class teleop(object):
             #If button y is active 
             elif(joy_msg.buttons[3]):   
                 # Reset Encoder
+                rospy.logwarn("Reset Encoder - Control mode 6 (Button Y)")
                 self.cmd_msg.linear.x  = 0
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 6  # Control mode
@@ -93,6 +99,7 @@ class teleop(object):
             #If left trigger is active 
             elif (joy_msg.buttons[6]):
                 # Closed-loop velocity 1 m/s, Open-loop steering
+                rospy.logwarn("CL Velocity, OL Steering - Control mode 2 (Left Trigger)")
                 self.cmd_msg.linear.x  = 2 #[m/s]
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 2 # Control mode
@@ -100,6 +107,7 @@ class teleop(object):
             #If right joy pushed
             elif(joy_msg.buttons[10]):
                  # Template for a custom mode
+                rospy.logwarn("Custom Mode - Control mode 7 (Right Joy)")
                 self.cmd_msg.linear.x  = 0
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 7 # Control mode
@@ -107,6 +115,7 @@ class teleop(object):
             #If bottom arrow is active
             elif(joy_msg.axes[5]):
                 # Template for a custom mode
+                rospy.logwarn("Custom Mode - Control mode 8 (Bottom Arrow)")
                 self.cmd_msg.linear.x  = 0
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 8 # Control mode
@@ -114,6 +123,7 @@ class teleop(object):
             # If button x is active e
             elif (joy_msg.buttons[0]):
                 # Mode 1: Constant voltage
+                rospy.logwarn("Constant voltage - Control mode 1 (Button X)")
                 self.cmd_msg.linear.x  = 5
                 self.cmd_msg.angular.z = 0
                 self.cmd_msg.linear.z  = 1 # Control mode
