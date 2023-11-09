@@ -431,7 +431,7 @@ void ctl(){
   }
   ///////////////////////////////////////////////////////
   else if (ctl_mode == 3){
-       // Low-level Position control
+    // Low-level Position control
     // Commands received in [m] setpoints
 
     float pos_ref, pos_error, pos_error_ddt;

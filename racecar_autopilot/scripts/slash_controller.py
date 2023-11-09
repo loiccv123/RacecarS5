@@ -128,14 +128,14 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
                 
-                x = np.array([[self.velocity], [self.laser_dy_fill], [self.laser_theta]])
-                r = np.array([[2], [0], [0]])
+                x = np.array([[self.position], [self.laser_dy_fill], [self.laser_theta]])
+                r = np.array([[3], [0], [0]])
                 
                 u = self.controller2( x , r )
 
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 3 # Mode ??? on arduino
+                self.arduino_mode   = 2 # Mode ??? on arduino
                 
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
@@ -175,14 +175,10 @@ class slash_controller(object):
 
     #######################################
     def controller2(self, x , r):
-
-        # Control Law TODO
-        
         u = np.dot( self.K_parking , (r - x))
         
-        if(u[1]>0.5):
-            u[1]=0.5
-        
+        # if(u[1]>0.5):
+        #     u[1]=0.5
         return u
 
     #######################################
