@@ -20,16 +20,16 @@ class slash_controller(object):
         self.pub_cmd    = rospy.Publisher("prop_cmd", Twist , queue_size=1)
         
         # Timer
-        self.dt         = 0.05
+        self.dt         = 0.025
         self.timer      = rospy.Timer( rospy.Duration( self.dt ), self.timed_controller )
         
         # Paramters
 
         # Controller        
-        self.steering_offset = 0.0 # To adjust according to the vehicle
+        self.steering_offset = 0.05 # To adjust according to the vehicle
         
-        self.K_autopilot =  np.array([[0.4087*6, 0, 0], [0, 3.1623*0.15, -1.4133*0.2]])
-        self.K_parking   =  np.array([[0.4763, 0, 0], [0, 0.0937, 0.3]])
+        self.K_autopilot =  np.array([[0.4087*6, 0, 0], [0, 3.1623*0.25, -1.4133]])
+        self.K_parking   =  np.array([[0.4763*6, 0, 0], [0, 0.0937*0.25, 0.3]])
         
         # Memory
         
@@ -102,7 +102,7 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
 
-                x = np.array([[self.velocity], [self.laser_dy_fill], [self.laser_theta]])
+                x = np.array([[self.velocity], [self.laser_y], [self.laser_theta]])
                 r = np.array([[2], [0], [0]])
                 
                 u = self.controller1( x , r )
@@ -167,9 +167,6 @@ class slash_controller(object):
         
     #######################################
     def controller1(self, x , r):
-        """self.K_autopilot = np.array([[0.4087, 0, 0], [0, 3.1623, 1.4133]])        
-        r = np.array([[2], [3], [4]])
-        x = np.array([[1], [1], [1]])"""
         u = np.dot( self.K_autopilot , (r - x))
         return u
 
