@@ -27,9 +27,6 @@ class teleop(object):
         
     def joy_callback( self, joy_msg ):
     
-        pressed_buttons = [i for i, val in enumerate(joy_msg.buttons) if val == 1]
-        if pressed_buttons:
-            print(f"Pressed buttons: {pressed_buttons}")
         min_axes = 5 if self.ps4 else 4
         if len(joy_msg.axes) < min_axes or len(joy_msg.buttons) < 7:
             if not self.joystickCompatibilityWarned:
@@ -42,9 +39,7 @@ class teleop(object):
         propulsion_user_input = joy_msg.axes[4 if self.ps4 else 3]    # Up-down Right joystick 
         steering_user_input   = joy_msg.axes[0]    # Left-right left joystick
         
-        self.cmd_msg = Twist()             
-        
-        rospy.logwarn(joy_msg.buttons)      
+        self.cmd_msg = Twist()           
         
         # Software deadman switch
         #If left button is active 
@@ -126,7 +121,7 @@ class teleop(object):
                 self.cmd_msg.linear.z  = 7 # Control mode
                 
             #If No idea what button it is 
-            elif(joy_msg.axes[2]<1):   
+            elif(joy_msg.axes[2]<0):   
                 # Closed-loop velocity with fixed 1 m/s ref, Closed-loop steering
                 rospy.logwarn("CL Velocity, CL Steering - Control mode 5 (Left Trigger)")            
                 self.cmd_msg.linear.x  = 2 #[m/s]
@@ -134,7 +129,7 @@ class teleop(object):
                 self.cmd_msg.linear.z  = 5  # Control mode
                 
            #If No idea what button it is 
-            elif(joy_msg.axes[3]<1):   
+            elif(joy_msg.axes[5]<0):   
                 # Closed-loop velocity with fixed 1 m/s ref, Closed-loop steering
                 rospy.logwarn("CL Velocity, CL Steering - Control mode 5 (Right Trigger)")            
                 self.cmd_msg.linear.x  = 2 #[m/s]
