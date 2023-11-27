@@ -29,7 +29,7 @@ class slash_controller(object):
         self.steering_offset = 0.05 # To adjust according to the vehicle
         
         self.K_autopilot =  np.array([[0.4087*6, 0, 0], [0, 3.1623*0.25, -1.4133]])
-        self.K_parking   =  np.array([[0.4763*6, 0, 0], [0, 0.0937*0.25, 0.3]])
+        self.K_parking   =  np.array([[0.4763*0.2, 0, 0], [0, 0.0937*0.25, -0.3]])
         
         # Memory
         
@@ -81,7 +81,6 @@ class slash_controller(object):
                 self.propulsion_cmd = self.propulsion_ref
                 self.arduino_mode   = 2  
                 self.steering_cmd   = self.steering_ref + self.steering_offset 
-                rospy.logwarn("self.steering_cmd_controller : "+str(self.steering_ref)                  +"self.propulsion_cmd_controller : "+str(self.propulsion_ref))
                 
             elif ( self.high_level_mode == 2 ):
                 # Closed-loop position on arduino
@@ -106,8 +105,6 @@ class slash_controller(object):
                 r = np.array([[2], [0], [0]])
                 
                 u = self.controller1( x , r )
-
-                rospy.logwarn("self.steering_cmd : "+str(u[1])+"self.propulsion_cmd : "+str(u[0]))
                 
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
