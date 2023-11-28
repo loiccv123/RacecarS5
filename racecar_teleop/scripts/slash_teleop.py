@@ -36,7 +36,7 @@ class teleop(object):
 
         self.joystickCompatibilityWarned = False   # reset in case we switch mode on the gamepad
 
-        propulsion_user_input = joy_msg.axes[4 if self.ps4 else 3]    # Up-down Right joystick 
+        propulsion_user_input = joy_msg.axes[4]    # Up-down Right joystick 
         steering_user_input   = joy_msg.axes[0]    # Left-right left joystick
         
         self.cmd_msg = Twist()           
