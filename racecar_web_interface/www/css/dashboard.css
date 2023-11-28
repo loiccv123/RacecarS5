@@ -1,40 +1,6 @@
 body {
   font-size: .875rem;
-  background-color: rgb(255, 255, 255); /* Change the page background color */
 }
-
-.column {
-  float: left;
-  width: 50%;
-  padding: 20px;
-  box-sizing: border-box;
-  border-radius: 10px; /* Add rounded corners to the containers */
-}
-
-.button {
-  background-color: black;
-  color: white;
-  border-radius: 5px; /* Add rounded corners to the buttons */
-  padding: 10px 20px;
-  margin: 5px;
-  cursor: pointer;
-}
-
-.button:hover {
-  background-color: grey;
-}
-
-.button:disabled {
-  pointer-events: none;
-}
-
-
-.row {
-    display: flex; /* Use flexbox for layout */
-    flex-wrap: wrap; /* Allow flex items to wrap to the next line */
-    margin: -10px; /* Negative margin to offset padding on columns */
-}
-
 
 /*
  * Sidebar

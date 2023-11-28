@@ -20,16 +20,17 @@ class slash_controller(object):
         self.pub_cmd    = rospy.Publisher("prop_cmd", Twist , queue_size=1)
         
         # Timer
-        self.dt         = 0.025
+        self.dt         = 0.05
         self.timer      = rospy.Timer( rospy.Duration( self.dt ), self.timed_controller )
         
         # Paramters
 
         # Controller        
-        self.steering_offset = 0.05 # To adjust according to the vehicle
+        self.steering_offset = 0.0 # To adjust according to the vehicle
         
-        self.K_autopilot =  np.array([[0.4087*6, 0, 0], [0, 3.1623*0.25, -1.4133]])
-        self.K_parking   =  np.array([[0.4763*0.2, 0, 0], [0, 0.0937*0.25, -0.3]])
+        self.K_autopilot =  None # TODO: DESIGN LQR
+    
+        self.K_parking   =  None # TODO: DESIGN PLACEMENT DE POLES
         
         # Memory
         
@@ -101,15 +102,14 @@ class slash_controller(object):
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
 
-                x = np.array([[self.velocity], [self.laser_y], [self.laser_theta]])
-                r = np.array([[2], [0], [0]])
+                x = None
+                r = None
                 
                 u = self.controller1( x , r )
-                
+
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 1
-
+                self.arduino_mode   = 0    # Mode ??? on arduino
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
@@ -119,21 +119,20 @@ class slash_controller(object):
                 #########################################################
                 # TODO: COMPLETEZ LE CONTROLLER
                 
-                # Stationnement # 1 
+                # Auto-pilot # 1 
                 
                 # x = [ ?,? ,.... ]
                 # r = [ ?,? ,.... ]
                 # u = [ servo_cmd , prop_cmd ]
                 
-                x = np.array([[self.position], [self.laser_dy_fill], [self.laser_theta]])
-                r = np.array([[3], [0], [0]])
+                x = None
+                r = None
                 
                 u = self.controller2( x , r )
 
                 self.steering_cmd   = u[1] + self.steering_offset
                 self.propulsion_cmd = u[0]     
-                self.arduino_mode   = 2 # Mode ??? on arduino
-                
+                self.arduino_mode   = 0 # Mode ??? on arduino
                 # TODO: COMPLETEZ LE CONTROLLER
                 #########################################################
                 
@@ -163,16 +162,25 @@ class slash_controller(object):
 
         
     #######################################
-    def controller1(self, x , r):
-        u = np.dot( self.K_autopilot , (r - x))
+    def controller1(self, y , r):
+
+        # Control Law TODO
+
+        u = np.array([ 0 , 0 ]) # placeholder
+        
+        #u = np.dot( self.K_autopilot , (r - x) )
+        
         return u
 
     #######################################
-    def controller2(self, x , r):
-        u = np.dot( self.K_parking , (r - x))
+    def controller2(self, y , r ):
+
+        # Control Law TODO
+
+        u = np.array([ 0 , 0 ]) # placeholder
         
-        # if(u[1]>0.5):
-        #     u[1]=0.5
+        #u = np.dot( self.K_parking , (r - x) )
+        
         return u
 
     #######################################

@@ -28,7 +28,7 @@
 Servo steeringServo;
 
 // IMU
-MPU9250 imu(Wire, 0x68);
+ MPU9250 imu(Wire, 0x68);
 
 // ROS
 ros::NodeHandle  nodeHandle;
@@ -52,6 +52,12 @@ const int ser_pin = 9;      // Servo
 const int dri_pwm_pin     = 6 ;  // H bridge drive pwm
 const int dri_dir_pin     = 42; //
 
+
+// debug
+long timer_debug = 0;
+long time_micros = 0;
+long time_micros_last = 0;
+
 ///////////////////////////////////////////////////////////////////
 // Parameters
 ///////////////////////////////////////////////////////////////////
@@ -59,22 +65,17 @@ const int dri_dir_pin     = 42; //
 // Controller
 
 //TODO: VOUS DEVEZ DETERMINEZ DES BONS PARAMETRES SUIVANTS
-const float filter_rc = 0.1;
-const float vel_kp = 5.0;
-const float vel_ki = 0.0;
-const float vel_kd = 0.0;
-const float pos_kp = 10.0;
-const float pos_kd = 0.0;
-const float pos_ki = 0.0;
-const float pos_ei_sat = 10000.0;
-const float vel_ei_sat = 1000.0;
-
-//Filter
-float prev_fil_vel = 0;
-float alpha = 0.2;
+const float filter_rc  =  0.1;
+const float vel_kp     =  10.0; 
+const float vel_ki     =  0.0; 
+const float vel_kd     =  0.0;
+const float pos_kp     =  1.0; 
+const float pos_kd     =  0.0;
+const float pos_ki     =  0.0; 
+const float pos_ei_sat =  10000.0; 
 
 // Loop period 
-const unsigned long time_period_low   = 2;    // 500 Hz for internal PID loop
+const unsigned long time_period_low   = 1;    // 500 Hz for internal PID loop
 const unsigned long time_period_high  = 10;   // 100 Hz  for ROS communication
 const unsigned long time_period_com   = 1000; // 1000 ms = max com delay (watchdog)
 
@@ -93,7 +94,7 @@ const double batteryV  = 8;
 const double maxAngle  = 40*(2*3.1416)/360;    //max steering angle in rad
 const double rad2pwm   = (pwm_zer_ser-pwm_min_ser)/maxAngle;
 const double volt2pwm  = (pwm_zer_dri-pwm_min_dri)/batteryV;
-const double tick2m    = 0.0000026752; // To confirm
+const double tick2m    = 0.000002752; // To confirm
 
 ///////////////////////////////////////////////////////////////////
 // Memory
@@ -111,9 +112,6 @@ int   dri_pwm = 0;
 float dri_cmd = 0;
 
 // Controller memory (differentiation, filters and integral actions)
-unsigned long millis_old = 0;
-float vel_fil = 0;
-
 signed long enc_now   = 0;
 signed long enc_old   = 0;
 
@@ -123,8 +121,6 @@ float vel_old   = 0;
 
 float vel_error_int = 0 ;
 float pos_error_int = 0;
-float vel_error_old = 0;
-float pos_error_old = 0;
 
 // Loop timing
 unsigned long time_now       = 0;
@@ -135,7 +131,6 @@ unsigned long time_last_com  = 0; //com watchdog
 // For odometry
 signed long enc_last_high   = 0;
 
-bool passeHere = false;
 ///////////////////////////////////////////////////////////////////
 // Encoder init/read/reset functions
 ///////////////////////////////////////////////////////////////////
@@ -308,7 +303,7 @@ void cmdCallback ( const geometry_msgs::Twist&  twistMsg ){
 ///////////////////////////////////////////////////////////////////
 // Controller One tick
 ///////////////////////////////////////////////////////////////////
-void ctl(){
+void ctl(int dt_low){
   
   ///////////////////////////////////////////////
   // STEERING CONTROL
@@ -330,77 +325,22 @@ void ctl(){
   
   // Velocity computation
 
-  float vel_raw = (enc_now - enc_old) * tick2m / (time_period_low * 1000);
-  float pos_raw = enc_now * tick2m;
-  
-  vel_fil = (alpha * vel_raw + (1 - alpha) * prev_filtered_vel);
-  prev_fil_vel = vel_fil
+  //TODO: VOUS DEVEZ COMPLETEZ LA DERIVEE FILTRE ICI
+  float vel_raw = (enc_now - enc_old) * tick2m / dt_low * 1000;
+  float alpha   = 0; // TODO
+  float vel_fil = vel_raw;    // Filter TODO
   
   // Propulsion Controllers
-   if(ctl_mode != 8){
-      passedHere = false;
-    }
+  
   //////////////////////////////////////////////////////
   if (ctl_mode == 0 ){
     // Zero output
     dri_pwm    = pwm_zer_dri ;
-    passedHere = false;
+    
     // reset integral actions
     vel_error_int = 0;
-    pos_error_int = 0;
+    pos_error_int = 0 ;
     
-  }
-
-    else if (ctl_mode == 7) {
-    // App 2 Closed loop velocity, open loop steering
-    // Commands received in [m/sec] setpoints
-
-    float vel_ref, vel_error;
-    float PERIODE = (tick2m / time_period_low) * 1000;
-    //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
-    vel_ref = dri_ref;
-    vel_error = vel_ref - vel_fil;
-    vel_error_int += vel_error * PERIODE;  // TODO
-
-    if (vel_error_int > vel_ei_sat) {
-      vel_error_int = vel_ei_sat;
-    }
-
-    dri_cmd = vel_kp * vel_error;       // proportionnal only
-    dri_cmd += vel_ki * vel_error_int;  // Integral only
-    dri_cmd += vel_kd * vel_error;      // Derivative only
-
-    dri_pwm = cmd2pwm(dri_cmd);
-  }
-
-  else if (ctl_mode == 8) {
-    // App2 Closed loop position, open loop steering
-    // Commands received in [Volts] directly
-
-    float pos_ref, pos_error, pos_error_ddt, pos_error_last;
-    float PERIODE = (tick2m / time_period_low) * 1000;
-    if (passedHere == false) {
-      float start_pos = pos_now;
-      passedHere = true;
-    }
-    //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
-    pos_ref = dri_ref;
-    pos_error = (start_pos+pos_ref) - pos_now;                           // TODO
-    pos_error_ddt = (pos_error - pos_error_last) / PERIODE;  // TODO
-    pos_error_int += pos_error * PERIODE;                    // TODO
-    pos_error_last = pos_error;
-
-    // Anti wind-up
-    if (pos_error_int > pos_ei_sat) {
-      pos_error_int = pos_ei_sat;
-    }
-
-    dri_cmd = pos_kp * pos_error;       // proportionnal only
-    dri_cmd += pos_ki * pos_error_int;  // Integral only
-    dri_cmd += pos_kd * pos_error;      // Derivative only
-
-
-    dri_pwm = cmd2pwm(dri_cmd);
   }
   //////////////////////////////////////////////////////
   else if (ctl_mode == 1 ){
@@ -411,45 +351,44 @@ void ctl(){
     
     // reset integral actions
     vel_error_int = 0;
-    pos_error_int = 0;
+    pos_error_int = 0 ;
   }
   //////////////////////////////////////////////////////
   else if (ctl_mode == 2 ){
     // Low-level Velocity control
     // Commands received in [m/sec] setpoints
-
+    
     float vel_ref, vel_error;
 
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
-    vel_ref = dri_ref;
-    vel_error = vel_ref - vel_fil;
-    vel_error_int = 0;             // TODO
-    dri_cmd = vel_kp * vel_error;  // proportionnal only
+    vel_ref       = dri_ref; 
+    vel_error     = vel_ref - vel_fil;
+    vel_error_int = 0; // TODO
+    dri_cmd       = vel_kp * vel_error; // proportionnal only
     
     dri_pwm    = cmd2pwm( dri_cmd ) ;
 
   }
   ///////////////////////////////////////////////////////
   else if (ctl_mode == 3){
-       // Low-level Position control
+    // Low-level Position control
     // Commands received in [m] setpoints
-
+    
     float pos_ref, pos_error, pos_error_ddt;
 
     //TODO: VOUS DEVEZ COMPLETEZ LE CONTROLLEUR SUIVANT
-    pos_ref = dri_ref;
-    pos_error = 0;      // TODO
-    pos_error_ddt = 0;  // TODO
-    pos_error_int = 0;  // TODO
-    
+    pos_ref       = dri_ref; 
+    pos_error     = 0; // TODO
+    pos_error_ddt = 0; // TODO
+    pos_error_int = 0; // TODO
     
     // Anti wind-up
     if ( pos_error_int > pos_ei_sat ){
       pos_error_int = pos_ei_sat;
     }
     
-    dri_cmd = 0; 
-
+    dri_cmd = 0; // TODO
+    
     dri_pwm = cmd2pwm( dri_cmd ) ;
   }
   ///////////////////////////////////////////////////////
@@ -459,16 +398,16 @@ void ctl(){
     clearEncoderCount();
     
     // reset integral actions
-    vel_error_int = 0;
-    pos_error_int = 0;
+    vel_error_int = 0 ;
+    pos_error_int = 0 ;
     
     dri_pwm    = pwm_zer_dri ;
   }
   ////////////////////////////////////////////////////////
   else {
     // reset integral actions
-    vel_error_int = 0;
-    pos_error_int = 0;
+    vel_error_int = 0 ;
+    pos_error_int = 0 ;
     
     dri_pwm    = pwm_zer_dri ;
   }
@@ -514,12 +453,12 @@ void setup(){
   set_pwm(0);
 
   // Initialize IMU
-  imu.begin();
+/*  imu.begin();
   imu.setAccelRange(MPU9250::ACCEL_RANGE_2G);
   imu.setGyroRange(MPU9250::GYRO_RANGE_250DPS);
   imu.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_41HZ);
   imu.setSrd(9); //100 Hz update rate
-  
+  */
   //
   delay(3000) ;
   
@@ -534,6 +473,7 @@ void setup(){
 void loop(){
   
   time_now = millis();
+  time_micros = micros();
 
   /////////////////////////////////////////////////////////////
   // Watchdog: stop the car if no recent communication from ROS
@@ -552,10 +492,12 @@ void loop(){
   ///////////////////////////////////////
 
   if (( time_now - time_last_low ) > time_period_low ) {
-    
-    ctl(); // one control tick
+
+    ctl(time_now - time_last_low); // one control tick
+    timer_debug = time_micros - time_micros_last ; ///
 
     time_last_low = time_now ;
+    time_micros_last = time_micros ;
   }
 
   ////////////////////////////////////////
@@ -575,7 +517,7 @@ void loop(){
     prop_sensors_data[4] = dri_pwm; // drive set point in pwm
     prop_sensors_data[5] = enc_now; // raw encoder counts
     prop_sensors_data[6] = ser_ref; // steering angle (don't remove/change, used for GRO830)
-    prop_sensors_data[7] = (float)( time_now - time_last_com ); // for com debug
+    prop_sensors_data[7] = (float)( timer_debug /*time_last_com */); // for com debug
     prop_sensors_data[8] = (float)dt; // time elapsed since last publish (don't remove/change, used for GRO830)
     prop_sensors_data[9] = (enc_now - enc_last_high) * tick2m; // distance travelled since last publish (don't remove/change, used for GRO830)
 
@@ -590,6 +532,7 @@ void loop(){
     prop_sensors_data[16] = imu.getMagX_uT();
     prop_sensors_data[17] = imu.getMagY_uT();
     prop_sensors_data[18] = imu.getMagZ_uT();
+    
     
     prop_sensors_msg.data        = &prop_sensors_data[0];
     prop_sensors_msg.data_length = prop_sensors_msg_length;

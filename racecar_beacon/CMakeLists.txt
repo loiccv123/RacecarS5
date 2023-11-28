@@ -94,16 +94,6 @@ find_package(catkin REQUIRED COMPONENTS
 #   cfg/DynReconf2.cfg
 # )
 
-add_service_files(
-  FILES
-  MyService.srv
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
 ###################################
 ## catkin specific configuration ##
 ###################################

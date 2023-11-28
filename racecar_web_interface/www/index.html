@@ -1,5 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
+<!-- 
+==References==
+Server-side:
+* http://docs.ros.org/indigo/api/roswww/html/
+* http://wiki.ros.org/web_video_server
+* http://wiki.ros.org/rosbridge_suite/Tutorials/RunningRosbridge
+
+Client-side:
+* http://wiki.ros.org/roslibjs/Tutorials/BasicRosFunctionality
+* https://getbootstrap.com/docs/4.0/getting-started/introduction/
+* https://getbootstrap.com/docs/4.0/layout/grid/
+-->
+
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -9,119 +22,103 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/dashboard.css">
 
-    <title>Login</title>
+    <title>Laboratoire S5-GIF250</title>
 </head>
-<body style="background-color: lightblue;">
-  <div class="login-container" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(211, 211, 211, 0.75)">
-    <h1>Connexion au Racecar</h1>
-    <form id="loginForm" style="text-align: right;">
-        <label for="username">Nom d'utilisateur</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="ipAddress"> Adresse IP: </label>
-        <input type="text" id="ipAddress" name="ipAddress" placeholder="127.0.0.1" required>
-        <br>
-        <input type="submit" value="Soumettre">
-    </form>
+
+<body>
+    
+  <!-- Menu BEGIN-->
+  <div class="collapse" id="navbarToggleExternalContent">
+    <div class="bg-dark p-4">
+      <h6 class="text-white h4">Config</h6>
+    </div>
   </div>
-<!-- Main layout END-->
 
-<!-- JavaScript, import frameworks -->
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="js/jquery-3.3.1.slim.min.js"></script>
-<script src="js/popper.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/roslib.min.js"></script> <!-- rosbridge -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggleExternalContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </nav>
+  <!-- Menu END-->
 
-<script>
+  <!-- Main layout BEGIN-->
+  <div class="container-fluid">
 
-// Define some global variables
-var rbServer = null;
-
-document.getElementById("loginForm").addEventListener("submit", function(event) {
-  event.preventDefault();
-  connectROS();
-});
-
-// Define the timeout variable in the outer scope
-const timeout = 500;
-
-function connectROS() {
-  // Disable the submit button to prevent further connection attempt
-  document.querySelector('input[type="submit"]').disabled = true;
-  // This function connects to the rosbridge server
-  const ipAddress = document.getElementById("ipAddress").value;
-  const ipRegex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
-
-  if (!ipRegex.test(ipAddress)) {
-    alert("Invalid IP address format. Please enter a valid IP address.");
-    // Re-enable the submit button for re-submission
-    document.querySelector('input[type="submit"]').disabled = false;
-    return;
-  }
-  var enableSubmit = true;
-  // Use an XMLHttpRequest for the reachability check
-  checkServerReachability(ipAddress, function (isReachable) {
-
-    if (isReachable) {
-      enableSubmit = false;
-      // If the server is reachable, connect to the rosbridge server
-      rbServer = new ROSLIB.Ros({
-        url: 'ws://' + ipAddress + ':9090'
-      });
-
-      rbServer.on('connection', function () {
-        console.log('Connected to websocket server.');
-        // Redirect to the second page
-        sessionStorage.setItem('username', document.getElementById("username").value);
-        sessionStorage.setItem('ipAddress', ipAddress);
-        window.location.href = 'MainPage.html';
-      });
-
-      rbServer.on('error', function (error) {
-        console.log('Error connecting to websocket server: ', error);
-        // Re-enable the submit button for re-submission
-        document.querySelector('input[type="submit"]').disabled = false;
-      });
-
-      rbServer.on('close', function () {
-        console.log('Connection to websocket server closed.');
-        // Re-enable the submit button for re-submission
-        document.querySelector('input[type="submit"]').disabled = false;
-      });
-
-    } else if (enableSubmit){
-      // The server is not reachable
-      alert("The server at IP address " + ipAddress + " is not reachable. Please check the IP address and network connection.");
-      // Re-enable the submit button for re-submission
-      document.querySelector('input[type="submit"]').disabled = false;
-    }
-  });
-}
-
-
-function checkServerReachability(ipAddress, callback) {
-  var wsUrl = 'ws://' + ipAddress + ':9090';
-  var ws = new WebSocket(wsUrl);
-
-  // Set a timeout for the WebSocket connection attempt
-  var timer = setTimeout(function () {
-    ws.close(); // Close the connection if it's taking too long
-    callback(false); // Indicate that the server is not reachable
-  }, timeout);
-
-  ws.onopen = function () {
-    clearTimeout(timer); // Cancel the timeout since the connection succeeded
-    ws.close(); // Close the WebSocket connection
-    callback(true); // Indicate that the server is reachable
-  };
+  </div>
+  <!-- Main layout END-->
   
-  ws.onclose = function () {
-    clearTimeout(timer); // Cancel the timeout since the connection was closed
-    callback(false); // Indicate that the server is not reachable
-  };
-}     
+  <!-- JavaScript, import frameworks -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="js/jquery-3.3.1.slim.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/roslib.min.js"></script> <!-- rosbridge -->
 
-</script>
+  <!-- Custom scripts -->
+  <script>
+      // Define some global variables
+      var rbServer = null;
+      var cmdVelTopic = null;
+
+      //Some initializations after the page has been shown
+      $(document).ready(function(){
+        document.getElementById("log").value = 'Default text\n'
+      });
+
+      // Define some functions
+      function connectROS() {
+        // This function connects to the rosbridge server
+
+	    rbServer = new ROSLIB.Ros({
+          // Assuming ros server IP is 10.42.0.1
+	      url : 'ws://10.42.0.1:9090'
+	    });
+
+        rbServer.on('connection', function(){
+            console.log('Connected to websocket server.');
+
+            // These lines create a topic object as defined by roslibjs
+            cmdVelTopic = new ROSLIB.Topic({
+                ros : rbServer,
+                name : '/racecar/cmd_vel_abtr_2',
+                messageType : 'geometry_msgs/Twist'
+            });
+	    });
+
+        rbServer.on('error', function(error) {
+          console.log('Error connecting to websocket server: ', error);
+	    });
+
+	    rbServer.on('close', function() {
+          console.log('Connection to websocket server closed.');
+	    });
+      }
+
+      // These lines create a message that conforms to the structure of the Twist defined in our ROS installation
+      // It initalizes all properties to zero. They will be set to appropriate values before we publish this message.
+      var twist = new ROSLIB.Message({
+           linear : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            },
+            angular : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            }
+      });
+
+      //Publishing loop cmd_vel at 5 Hz
+      setInterval(function(){
+           if(cmdVelTopic != null)
+           {
+             cmdVelTopic.publish(twist);
+           }
+      }, 200);
+
+  </script>
 </body>
 </html>
