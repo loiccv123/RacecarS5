@@ -14,7 +14,8 @@
       <remap from="scan" to="scan"/>
       <remap from="map" to="map"/>
 
-      <param name="global_costmap/global_frame" value="$(arg prefix)/map"/>
+      <param name="global_costmap/global_frame" value="$(arg prefix)/
+map"/>
       <param name="global_costmap/robot_base_frame" value="$(arg prefix)/base_footprint"/>
       <param name="local_costmap/global_frame" value="$(arg prefix)/odom"/>
       <param name="local_costmap/robot_base_frame" value="$(arg prefix)/base_footprint"/>
