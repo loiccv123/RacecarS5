@@ -34,9 +34,36 @@ def brushfire(occupancyGrid):
     mapOfWorld[occupancyGrid==100] = 1 # obstacles
     mapOfWorld[occupancyGrid==-1] = 1  # unknowns
     
-    # do brushfire algorithm here
+    nRows = 210
+    nCols = 397
+    use8CellWindow = False
+# do brushfire algorithm here
     
-    # brushfire: -1 = obstacle or unknown, safer cells have higher value)
+    a = 0
+    while 0 in mapOfWorld:
+        a=a+1
+        for iRow in range(nRows):
+            for iCol in range(nCols):
+                if mapOfWorld[iRow][iCol] == a:
+                    if mapOfWorld[iRow-1][iCol] == 0:
+                        mapOfWorld[iRow-1][iCol] = a+1
+                    if mapOfWorld[iRow][iCol-1] == 0:
+                        mapOfWorld[iRow][iCol-1] = a+1
+                    if mapOfWorld[iRow+1][iCol] == 0:
+                        mapOfWorld[iRow+1][iCol] = a+1
+                    if mapOfWorld[iRow][iCol+1] == 0:
+                        mapOfWorld[iRow][iCol+1] = a+1
+                    if use8CellWindow:
+                        if mapOfWorld[iRow-1][iCol-1] == 0:
+                            mapOfWorld[iRow-1][iCol-1] = a+1
+                        if mapOfWorld[iRow-1][iCol+1] == 0:
+                            mapOfWorld[iRow-1][iCol+1] = a+1
+                        if mapOfWorld[iRow+1][iCol-1] == 0:
+                            mapOfWorld[iRow+1][iCol-1] = a+1
+                        if mapOfWorld[iRow+1][iCol+1] == 0:
+                            mapOfWorld[iRow+1][iCol+1] = a+1
+ 
+# brushfire: -1 = obstacle or unknown, safer cells have higher value)
     return mapOfWorld
     
 
