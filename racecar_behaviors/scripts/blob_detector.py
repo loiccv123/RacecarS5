@@ -31,8 +31,8 @@ class BlobDetector:
         self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         self.obstacle_detected = False
         self.target_distance = 0.75
-        self.linear_speed = 2  
-        self.angular_speed = 0.8 
+        self.linear_speed = 2.0  
+        self.angular_speed = 0.20
         self.goal_reached_tolerance = 0.1 
         self.angle_adjust = 0
         self.distance_adjust = 0
@@ -191,36 +191,39 @@ class BlobDetector:
                 print(e)
 
     def stabilize_obstacle(self):
-        rate = rospy.Rate(10)  # Control the rate of obstacle detection
-        while not rospy.is_shutdown():
-            if self.obstacle_detected:
-                while self.obstacle_detected and not rospy.is_shutdown():
-                    twist_cmd = Twist()
-                    if abs(self.angle_adjust) > 0.5:  # Adjust the threshold for turning direction change
-                        # Change steering direction
-                        twist_cmd.angular.z = -self.angular_speed if self.angle_adjust > 0 else self.angular_speed
-                        rospy.loginfo("angle_adjust=%f",twist_cmd.angular.z)
-                        self.cmd_vel_pub.publish(twist_cmd);
-                    else:
-                        # Move forward if angle is approximately 0
-                        twist_cmd.linear.x = self.linear_speed
-                        twist_cmd.angular.z = 0
-                        self.cmd_vel_pub.publish(twist_cmd);
-                        # Check if distance is close to the desired distance
-                        if self.distance_adjust > self.target_distance + self.goal_reached_tolerance:
-                            # Move towards the obstacle
-                            twist_cmd.linear.x = self.linear_speed
-                            self.cmd_vel_pub.publish(twist_cmd);
-                        elif self.distance_adjust < self.target_distance - self.goal_reached_tolerance:
-                            # Move away from the obstacle
-                            twist_cmd.linear.x = -self.linear_speed
-                            self.cmd_vel_pub.publish(twist_cmd);
-                        else:
-                            twist_cmd.linear.x = 0.0
-                            self.obstacle_detected = False
-                            self.cmd_vel_pub.publish(twist_cmd);
+        rate = rospy.Rate(100)  # Control the rate of obstacle detection
 
-                    rate.sleep()
+        # Initialize previous twist command outside the loop
+        #prev_twist_cmd = Twist()
+
+        while not rospy.is_shutdown():
+            twist_cmd = Twist()  # Initialize twist command inside the loop
+
+            # Execute these commands while an obstacle is detected
+            while self.obstacle_detected and not rospy.is_shutdown():
+                if abs(self.angle_adjust) > 1:  # Adjust the threshold for turning direction change
+                    twist_cmd.angular.z = self.angular_speed if self.angle_adjust > 0 else -self.angular_speed
+                    twist_cmd.linear.x = 0.5
+                else:
+                    twist_cmd.linear.x = self.linear_speed
+                    twist_cmd.angular.z = 0
+                    # Check if distance is close to the desired distance
+                    if self.distance_adjust > self.target_distance + self.goal_reached_tolerance:
+                        twist_cmd.linear.x = self.linear_speed
+                    else:
+                        self.obstacle_detected = False  # Reset obstacle flag when done
+                        # Stop the robot after finishing the obstacle handling
+                        twist_cmd.linear.x = 0.0
+                        twist_cmd.angular.z = 0.0
+
+                # Publish the twist command only if it's different from the previous command
+                #rospy.loginfo(twist_cmd)
+                #if twist_cmd != prev_twist_cmd:
+                self.cmd_vel_pub.publish(twist_cmd)
+                    #prev_twist_cmd = twist_cmd  # Update previous command
+
+                rate.sleep()
+
       
 def main():
     rospy.init_node('blob_detector')
