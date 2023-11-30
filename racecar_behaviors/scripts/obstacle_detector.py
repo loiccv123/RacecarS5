@@ -8,7 +8,7 @@ from sensor_msgs.msg import LaserScan
 
 class ObstacleDetector:
     def __init__(self):
-        self.distance = rospy.get_param('~distance', 0.75)
+        self.distance = rospy.get_param('~distance', 0.5)
         self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         self.scan_sub = rospy.Subscriber('scan', LaserScan, self.scan_callback, queue_size=1)
 

@@ -28,14 +28,15 @@ class BlobDetector:
         self.color_value = rospy.get_param('~color_value', 50) 
         self.border = rospy.get_param('~border', 10) 
         self.config_srv = Server(BlobDetectorConfig, self.config_callback)
-        self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher('cmd_vel_abtr_2', Twist, queue_size=1)
         self.obstacle_detected = False
-        self.target_distance = 0.75
+        self.target_distance = 1
         self.linear_speed = 2.0  
         self.angular_speed = 0.20
         self.goal_reached_tolerance = 0.1 
         self.angle_adjust = 0
         self.distance_adjust = 0
+        self.bloon_reached = False
         
         params = cv2.SimpleBlobDetector_Params()
         # see https://www.geeksforgeeks.org/find-circles-and-ellipses-in-an-image-using-opencv-python/
@@ -144,7 +145,7 @@ class BlobDetector:
                         closestObject[2] = depth
 
         # We process only the closest object detected
-        if closestObject[2] > 0:
+        if not self.bloon_reached and closestObject[2] > 0:
             # assuming the object is circular, use center of the object as position
             transObj = (closestObject[0], closestObject[1], closestObject[2])
             rotObj = tf.transformations.quaternion_from_euler(0, np.pi/2, -np.pi/2)
@@ -156,6 +157,7 @@ class BlobDetector:
             msg.data = self.object_frame_id
             self.object_pub.publish(msg) # signal that an object has been detected
             self.obstacle_detected = True
+            rospy.logwarn("IF")
             
             # Compute object pose in map frame
             try:
@@ -181,7 +183,10 @@ class BlobDetector:
             self.distance_adjust = distance
             
             rospy.loginfo("Object detected at [%f,%f] in %s frame! Distance and direction from robot: %fm %fdeg.", transMap[0], transMap[1], self.map_frame_id, distance, angle*180.0/np.pi)
-
+        
+        elif self.bloon_reached and not closestObject[2] > 0:
+            self.bloon_reached = False
+            rospy.logwarn("ELIF")
         # debugging topic
         if self.image_pub.get_num_connections()>0:
             cv_image = cv2.bitwise_and(cv_image, cv_image, mask=mask)
@@ -201,17 +206,25 @@ class BlobDetector:
 
             # Execute these commands while an obstacle is detected
             while self.obstacle_detected and not rospy.is_shutdown():
-                if abs(self.angle_adjust) > 1:  # Adjust the threshold for turning direction change
+                rospy.logwarn("self.angle_adjust: {}".format(self.angle_adjust))
+
+                if abs(self.angle_adjust) > 2.5: 
                     twist_cmd.angular.z = self.angular_speed if self.angle_adjust > 0 else -self.angular_speed
                     twist_cmd.linear.x = 0.5
                 else:
                     twist_cmd.linear.x = self.linear_speed
                     twist_cmd.angular.z = 0
                     # Check if distance is close to the desired distance
+                    rospy.logwarn("self.distance_adjust: {}".format(self.distance_adjust))
+
                     if self.distance_adjust > self.target_distance + self.goal_reached_tolerance:
                         twist_cmd.linear.x = self.linear_speed
+
                     else:
                         self.obstacle_detected = False  # Reset obstacle flag when done
+                        rospy.logwarn("ELSE")
+                        self.bloon_reached = True
+                        
                         # Stop the robot after finishing the obstacle handling
                         twist_cmd.linear.x = 0.0
                         twist_cmd.angular.z = 0.0
