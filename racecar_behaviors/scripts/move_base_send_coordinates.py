@@ -6,25 +6,26 @@ from actionlib import SimpleActionClient
 from geometry_msgs.msg import Quaternion
 from tf.transformations import quaternion_from_euler
 
+
 def move_base_send_coordinates(x, y, theta):
     try:
         # Initialize ROS node
         rospy.init_node("move_base_sender")
 
         # Create SimpleActionClient for move_base
-        client = SimpleActionClient('move_base', MoveBaseAction)
+        client = SimpleActionClient("move_base", MoveBaseAction)
         client.wait_for_server()
 
         # Create MoveBaseGoal
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = 'racecar/map'
+        goal.target_pose.header.frame_id = "racecar/map"
         goal.target_pose.pose.position.x = x
         goal.target_pose.pose.position.y = y
 
         quat = quaternion_from_euler(0, 0, theta)
         goal.target_pose.pose.orientation = Quaternion(*quat)
-        #goal.target_pose.pose.orientation.w = 1.0  # Assume no rotation for simplicity
- 
+        # goal.target_pose.pose.orientation.w = 1.0  # Assume no rotation for simplicity
+
         # Send the goal to move_base
         client.send_goal(goal)
         client.wait_for_result()
@@ -43,6 +44,7 @@ def move_base_send_coordinates(x, y, theta):
     except rospy.ROSInterruptException:
         rospy.loginfo("ROS node interrupted.")
         return False
+
 
 if __name__ == "__main__":
     x_coord = 13.5

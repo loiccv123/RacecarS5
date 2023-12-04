@@ -13,6 +13,7 @@ lp = lg.LaserProjection()
 
 pc_pub = rospy.Publisher("converted_pc", PointCloud2, queue_size=1)
 
+
 def scan_cb(msg):
     # convert the message of type LaserScan to a PointCloud2
     pc2_msg = lp.projectLaser(msg)
@@ -20,10 +21,9 @@ def scan_cb(msg):
     # now we can do something with the PointCloud2 for example:
     # publish it
     pc_pub.publish(pc2_msg)
-    
+
     # convert it to a generator of the individual points
     point_generator = pc2.read_points(pc2_msg)
-    
 
     # we can access a generator in a loop
     sum = 0.0
@@ -33,7 +33,7 @@ def scan_cb(msg):
             sum += point[2]
             num += 1
     # we can calculate the average z value for example
-    print(str(sum/num))
+    print(str(sum / num))
 
     # or a list of the individual points which is less efficient
     point_list = pc2.read_points_list(pc2_msg)
@@ -41,10 +41,8 @@ def scan_cb(msg):
     # we can access the point list with an index, each element is a namedtuple
     # we can access the elements by name, the generator does not yield namedtuples!
     # if we convert it to a list and back this possibility is lost
-    print(point_list[int(len(point_list)/2)].x)
-
+    print(point_list[int(len(point_list) / 2)].x)
 
 
 rospy.Subscriber("/scan", LaserScan, scan_cb, queue_size=1)
 rospy.spin()
-
