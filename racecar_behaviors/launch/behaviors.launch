@@ -11,7 +11,8 @@
          
          cmd_vel_abtr_0 is reserved for teleop (highest priority). -->
 
-   <include file="/home/vboxuser/catkin_ws/src/RacecarS5/racecar_behaviors/launch/blob_detection.launch"/>
+   <include file="$(find racecar_behaviors)/launch/blob_detection.launch"/>
+
    <!-- <include file="/home/vboxuser/catkin_ws/src/RacecarS5/racecar_navigation/launch/navigation.launch"/> -->
 
    <arg name="prefix" default="racecar"/>
