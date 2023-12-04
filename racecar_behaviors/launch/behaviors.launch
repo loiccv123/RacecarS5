@@ -22,6 +22,11 @@
    <param if="$(arg use_sim_time)" name="use_sim_time" value="true"/>
 
    <group ns="$(arg prefix)">
+      <node pkg="racecar_behaviors" type="labo_brushfire.py" name="labo_brushfire" output="screen">
+         <remap from="map"     to="map"/>
+         <remap from="scan"    to="scan"/>
+      </node>
+
       <node pkg="racecar_behaviors" type="obstacle_detector.py" name="obstacle_detector" output="screen">
          <remap from="cmd_vel" to="cmd_vel_abtr_1"/>
          <remap from="scan"    to="scan"/>

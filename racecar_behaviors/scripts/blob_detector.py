@@ -6,6 +6,8 @@ import numpy as np
 import message_filters
 import tf
 import tf2_ros
+from generate_blob_path import GenerateBlobPath
+
 from racecar_behaviors.cfg import BlobDetectorConfig
 from dynamic_reconfigure.server import Server
 from std_msgs.msg import String, ColorRGBA
@@ -41,7 +43,9 @@ class BlobDetector:
         self.distance_adjust = 0
         self.bloon_reached = False
         self.photo_counter = 1  # Counter for naming the photos
-
+        self.transMap = None
+        
+        self.generate_blob_path = GenerateBlobPath()
 
         params = cv2.SimpleBlobDetector_Params()
         # see https://www.geeksforgeeks.org/find-circles-and-ellipses-in-an-image-using-opencv-python/
@@ -266,6 +270,9 @@ class BlobDetector:
                     self.obstacle_detected = False 
                     self.bloon_reached = True
                     
+                    self.generate_blob_path.generate_new_path_report(transMap[0], transMap[1])
+                    self.capture_and_save_as_png()                        
+                    
                     twist_cmd.linear.x = 0.0
                     twist_cmd.angular.z = 0.0
             rospy.logwarn("publishing")
@@ -319,7 +326,7 @@ class BlobDetector:
                         rospy.logwarn("ELSE")
                         self.bloon_reached = True
                         
-                        self.capture_and_save_as_png()
+                        self.capture_and_save_as_png()                        
 
                         # Stop the robot after finishing the obstacle handling
                         twist_cmd.linear.x = 0.0
@@ -365,18 +372,19 @@ class BlobDetector:
         trans_obj, rot_obj = self.get_object_pose()
         x, y, _ = trans_obj
         photo_name = f"photo_object_{self.photo_counter}.png"
+        trajectory = f"trajectory_object_{self.photo_counter}.bmp"
 
         # Write the report
-        self.write_report(x, y, photo_name)
+        self.write_report(self.transMap[0], self.transMap[1], photo_name, trajectory)
 
-        # Increment the photo counter for the next image
-        self.photo_counter += 1
-
-    def write_report(self, x, y, photo_name):
+    def write_report(self, x, y, photo_name, trajectory):
         try:
             with open("report.txt", "a") as report_file:
-                report_file.write(f"{x} {y} {photo_name}\n")
-            rospy.loginfo(f"Report written successfully: x={x}, y={y}, photo_name={photo_name}")
+                report_file.write(f"{x} {y} {photo_name} {trajectory}\n")
+            rospy.loginfo(f"Report written successfully: x={x}, y={y}, photo_name={photo_name}, trajectory_name={trajectory}")
+            
+            # Increment the photo counter for the next image
+            self.photo_counter += 1
         except Exception as e:
             rospy.logerr(f"Error writing report: {e}")
     
@@ -396,7 +404,6 @@ class BlobDetector:
 def main():
     rospy.init_node("blob_detector")
     blobDetector = BlobDetector()
-    #blobDetector.stabilize_obstacle()
     rospy.spin()
 
 
