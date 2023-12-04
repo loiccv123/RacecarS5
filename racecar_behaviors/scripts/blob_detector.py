@@ -157,7 +157,6 @@ class BlobDetector:
             msg.data = self.object_frame_id
             self.object_pub.publish(msg) # signal that an object has been detected
             self.obstacle_detected = True
-            rospy.logwarn("IF")
             
             # Compute object pose in map frame
             try:
@@ -182,12 +181,30 @@ class BlobDetector:
             self.angle_adjust = angle*180.0/np.pi
             self.distance_adjust = distance
             
+            twist_cmd = Twist()
+
             rospy.loginfo("Object detected at [%f,%f] in %s frame! Distance and direction from robot: %fm %fdeg.", transMap[0], transMap[1], self.map_frame_id, distance, angle*180.0/np.pi)
+            if abs(self.angle_adjust) > 2.5: 
+                twist_cmd.angular.z = self.angular_speed if self.angle_adjust > 0 else -self.angular_speed
+                twist_cmd.linear.x = 0.5
+            else:
+                twist_cmd.linear.x = self.linear_speed
+                twist_cmd.angular.z = 0
+
+                if self.distance_adjust > self.target_distance + self.goal_reached_tolerance:
+                    twist_cmd.linear.x = self.linear_speed
+
+                else:
+                    self.obstacle_detected = False 
+                    self.bloon_reached = True
+                    
+                    twist_cmd.linear.x = 0.0
+                    twist_cmd.angular.z = 0.0
+            rospy.logwarn("publishing")
+            self.cmd_vel_pub.publish(twist_cmd)
         
         elif self.bloon_reached and not closestObject[2] > 0:
             self.bloon_reached = False
-            rospy.logwarn("ELIF")
-        # debugging topic
         if self.image_pub.get_num_connections()>0:
             cv_image = cv2.bitwise_and(cv_image, cv_image, mask=mask)
             try:
@@ -241,7 +258,7 @@ class BlobDetector:
 def main():
     rospy.init_node('blob_detector')
     blobDetector = BlobDetector()
-    blobDetector.stabilize_obstacle()
+    #blobDetector.stabilize_obstacle()
     rospy.spin()
 
 if __name__ == '__main__':
