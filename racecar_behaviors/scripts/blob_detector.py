@@ -40,6 +40,8 @@ class BlobDetector:
         self.angle_adjust = 0
         self.distance_adjust = 0
         self.bloon_reached = False
+        self.photo_counter = 1  # Counter for naming the photos
+
 
         params = cv2.SimpleBlobDetector_Params()
         # see https://www.geeksforgeeks.org/find-circles-and-ellipses-in-an-image-using-opencv-python/
@@ -307,6 +309,8 @@ class BlobDetector:
                         self.obstacle_detected = False  # Reset obstacle flag when done
                         rospy.logwarn("ELSE")
                         self.bloon_reached = True
+                        
+                        self.capture_and_save_as_png()
 
                         # Stop the robot after finishing the obstacle handling
                         twist_cmd.linear.x = 0.0
@@ -319,6 +323,65 @@ class BlobDetector:
                 # prev_twist_cmd = twist_cmd  # Update previous command
 
                 rate.sleep()
+
+    def capture_and_save_as_png(self):
+         # Capture an image from the camera
+        
+        ###############
+        # Si ça marche pas essayer ça
+        
+        # cap = cv2.VideoCapture(0)  # 0 indicates the default camera, you can change it if you have multiple cameras
+        # ret, frame = cap.read()
+        # cap.release()
+
+        # # Save the image as a PNG file with a sequential name in the same directory
+        # output_path = f"photo_object_{self.photo_counter}.png"
+        # cv2.imwrite(output_path, frame)
+
+        # print(f"Image saved successfully as PNG: {output_path}")
+        ################
+        
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(self.image_sub.message, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+            return
+
+        output_path = f"photo_object_{self.photo_counter}.png"
+        cv2.imwrite(output_path, cv_image)
+
+        rospy.loginfo(f"Image saved successfully as PNG: {output_path}")
+
+        # Get object pose in map frame
+        trans_obj, rot_obj = self.get_object_pose()
+        x, y, _ = trans_obj
+        photo_name = f"photo_object_{self.photo_counter}.png"
+
+        # Write the report
+        self.write_report(x, y, photo_name)
+
+        # Increment the photo counter for the next image
+        self.photo_counter += 1
+
+    def write_report(self, x, y, photo_name):
+        try:
+            with open("report.txt", "a") as report_file:
+                report_file.write(f"{x} {y} {photo_name}\n")
+            rospy.loginfo(f"Report written successfully: x={x}, y={y}, photo_name={photo_name}")
+        except Exception as e:
+            rospy.logerr(f"Error writing report: {e}")
+    
+    def get_object_pose(self):
+        # Get the pose of the detected object in the map frame
+        try:
+            (trans_obj, rot_obj) = self.listener.lookupTransform(
+                self.map_frame_id, self.object_frame_id, rospy.Time(0)
+            )
+            return trans_obj, rot_obj
+        except tf.LookupException as e:
+            rospy.logerr(f"Error looking up object pose: {e}")
+            return None, None
+
 
 
 def main():
