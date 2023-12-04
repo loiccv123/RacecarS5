@@ -156,7 +156,8 @@ class teleop(object):
 
 
         # Publish cmd msg
-        self.pub_cmd.publish( self.cmd_msg )
+        if not (joy_msg.buttons[4] and joy_msg.axes[2]<0):
+            self.pub_cmd.publish( self.cmd_msg )
             
 
 #########################################

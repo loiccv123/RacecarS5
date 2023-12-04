@@ -26,7 +26,7 @@ class BlobDetector:
         self.frame_id = rospy.get_param("~frame_id", "base_link")
         self.object_frame_id = rospy.get_param("~object_frame_id", "object")
         self.color_hue = rospy.get_param(
-            "~color_hue", 10
+            "~color_hue", 100
         )  # 160=purple, 100=blue, 10=Orange
         self.color_range = rospy.get_param("~color_range", 15)
         self.color_saturation = rospy.get_param("~color_saturation", 50)

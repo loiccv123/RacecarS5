@@ -32,7 +32,8 @@
          <remap from="scan"    to="scan"/>
       </node>
       <node pkg="racecar_behaviors" type="move_base_send_coordinates.py" name="move_base_send_coordinates" output="screen"> 
-      </node> 
+      </node>
+      
       <arg name="cmd_vel_topic" default="cmd_vel_abtr_3"/>
       <arg name="odom_topic"    default="odom"/>
       <arg name="fixed_frame_id" default="odom"/>
@@ -56,7 +57,7 @@
          <param name="planner_patience" value="5.0" />
 
          <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
-         <param name="controller_frequency" value="5.0" />
+         <param name="controller_frequency" value="2" />
          <param name="controller_patience" value="15.0" />
 
          <param name="clearing_rotation_allowed" value="false" />
