@@ -31,11 +31,6 @@
       <arg name="odom_topic"    default="odom"/>
       <arg name="fixed_frame_id" default="odom"/>
       <arg name="debug" default="false"/>
-      <node pkg="racecar_behaviors" type="obstacle_detector.py" name="obstacle_detector" output="screen">
-         <remap from="cmd_vel" to="cmd_vel_abtr_1"/>
-         <remap from="scan" to="scan"/>
-      </node>
-      <node pkg="racecar_behaviors" type="move_base_send_coordinates.py" name="move_base_send_coordinates" output="screen"></node>
       <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
          <remap from="scan" to="scan"/>
          <remap from="map" to="map"/>
