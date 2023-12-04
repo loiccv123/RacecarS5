@@ -47,6 +47,6 @@ def move_base_send_coordinates(x, y, theta):
 
 
 if __name__ == "__main__":
-    x_coord = 13.5
-    y_coord = 2.1
+    x_coord = -5
+    y_coord = 1
     move_base_send_coordinates(x_coord, y_coord, 0)
