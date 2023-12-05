@@ -37,8 +37,8 @@ def brushfire(occupancyGrid):
     mapOfWorld[occupancyGrid == 100] = 1  # obstacles
     mapOfWorld[occupancyGrid == -1] = 1  # unknowns
 
-    nRows = 210
-    nCols = 397
+    nRows = occupancyGrid.shape[0]
+    nCols = occupancyGrid.shape[1]
     use8CellWindow = False
     # do brushfire algorithm here
 

@@ -40,10 +40,12 @@ class GenerateBlobPath:
             print("Service call failed: %s" % e)
 
     def get_map_grid(self):
-        self.map_grid = labo_brushfire.grid
-        # image_path = "$(find racecar_behaviors)/scripts/map.bmp"
-        # image = Image.open(image_path)
-        # self.map_grid = np.array(image)
+        # self.map_grid = labo_brushfire.grid
+        rospack = rospkg.RosPack()
+        package_path = rospack.get_path("racecar_behaviors")
+        image_path = os.path.join(package_path, "scripts", "map.bmp")
+        image = Image.open(image_path)
+        self.map_grid = np.array(image)
 
     def generate_new_path_report(self, x, y):
         start_node = (0, 0)

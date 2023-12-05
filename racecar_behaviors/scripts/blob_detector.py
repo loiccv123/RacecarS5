@@ -277,11 +277,6 @@ class BlobDetector:
                     
                     twist_cmd.linear.x = 0.0
                     twist_cmd.angular.z = 0.0
-<<<<<<< HEAD
-=======
-                    
-            rospy.logwarn("publishing")
->>>>>>> 2e8d8926fc60e94b83b3b411dbd3081142859842
             self.cmd_vel_pub.publish(twist_cmd)
         
         elif self.bloon_reached and not closestObject[2] > 0:
