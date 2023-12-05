@@ -36,8 +36,8 @@ class BlobDetector:
         self.cmd_vel_pub = rospy.Publisher("cmd_vel_abtr_2", Twist, queue_size=1)
         self.obstacle_detected = False
         self.target_distance = 1
-        self.linear_speed = 2.0
-        self.angular_speed = 0.20
+        self.linear_speed = 1.0
+        self.angular_speed = 0.25
         self.goal_reached_tolerance = 0.1
         self.angle_adjust = 0
         self.distance_adjust = 0
@@ -257,7 +257,7 @@ class BlobDetector:
             rospy.loginfo("Object detected at [%f,%f] in %s frame! Distance and direction from robot: %fm %fdeg.", transMap[0], transMap[1], self.map_frame_id, distance, angle*180.0/np.pi)
             if abs(self.angle_adjust) > 2.5: 
                 twist_cmd.angular.z = self.angular_speed if self.angle_adjust > 0 else -self.angular_speed
-                twist_cmd.linear.x = 0.5
+                twist_cmd.linear.x = 1.0
             else:
                 twist_cmd.linear.x = self.linear_speed
                 twist_cmd.angular.z = 0
@@ -277,8 +277,11 @@ class BlobDetector:
                     
                     twist_cmd.linear.x = 0.0
                     twist_cmd.angular.z = 0.0
+<<<<<<< HEAD
+=======
                     
             rospy.logwarn("publishing")
+>>>>>>> 2e8d8926fc60e94b83b3b411dbd3081142859842
             self.cmd_vel_pub.publish(twist_cmd)
         
         elif self.bloon_reached and not closestObject[2] > 0:
