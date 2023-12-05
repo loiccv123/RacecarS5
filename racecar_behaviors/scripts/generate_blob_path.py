@@ -13,6 +13,11 @@ import os
 
 class GenerateBlobPath:
     def __init__(self):
+        self.map_height = None
+        self.map_width = None
+        self.map_res = None
+        self.map_grid = None
+        
         rospack = rospkg.RosPack()
         package_path = rospack.get_path("racecar_behaviors")
         file_path = os.path.join(package_path, "scripts", "brushfire.bmp")
@@ -20,10 +25,11 @@ class GenerateBlobPath:
         self.get_map_attributes()
         self.get_map_grid()
         self.trajectory_counter = 0
+        
 
     def get_map_attributes(self):
-        prefix = "racecar"
-        rospy.wait_for_service(prefix + "/get_map", timeout=30)
+        prefix = "/racecar"
+        rospy.wait_for_service(prefix + "/get_map")
         try:
             get_map = rospy.ServiceProxy(prefix + "/get_map", GetMap)
             response = get_map()

@@ -11,7 +11,7 @@ grid = None
 def main():
     rospy.init_node("brushfire")
     global grid
-    prefix = "racecar"
+    prefix = "/racecar"
     rospy.wait_for_service(prefix + "/get_map")
     try:
         get_map = rospy.ServiceProxy(prefix + "/get_map", GetMap)
