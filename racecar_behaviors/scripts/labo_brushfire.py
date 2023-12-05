@@ -6,9 +6,11 @@ import numpy as np
 from nav_msgs.srv import GetMap
 from libbehaviors import *
 
+grid = None
 
 def main():
     rospy.init_node("brushfire")
+    global grid
     prefix = "racecar"
     rospy.wait_for_service(prefix + "/get_map")
     try:
