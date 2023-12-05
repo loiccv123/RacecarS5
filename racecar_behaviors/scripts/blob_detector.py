@@ -43,7 +43,6 @@ class BlobDetector:
         self.distance_adjust = 0
         self.bloon_reached = False
         self.photo_counter = 1  # Counter for naming the photos
-        self.transMap = None
         
         self.generate_blob_path = GenerateBlobPath()
 
@@ -270,11 +269,15 @@ class BlobDetector:
                     self.obstacle_detected = False 
                     self.bloon_reached = True
                     
-                    self.generate_blob_path.generate_new_path_report(transMap[0], transMap[1])
-                    self.capture_and_save_as_png()                        
+                    current_blob_x = transMap[0]
+                    current_blob_y = transMap[1]
+                    
+                    self.generate_blob_path.generate_new_path_report(current_blob_x, current_blob_y)
+                    self.capture_and_save_as_png(current_blob_x, current_blob_y)                        
                     
                     twist_cmd.linear.x = 0.0
                     twist_cmd.angular.z = 0.0
+                    
             rospy.logwarn("publishing")
             self.cmd_vel_pub.publish(twist_cmd)
         
@@ -340,7 +343,7 @@ class BlobDetector:
 
                 rate.sleep()
 
-    def capture_and_save_as_png(self):
+    def capture_and_save_as_png(self, x, y):
          # Capture an image from the camera
         
         ###############
@@ -375,7 +378,7 @@ class BlobDetector:
         trajectory = f"trajectory_object_{self.photo_counter}.bmp"
 
         # Write the report
-        self.write_report(self.transMap[0], self.transMap[1], photo_name, trajectory)
+        self.write_report(x, y, photo_name, trajectory)
 
     def write_report(self, x, y, photo_name, trajectory):
         try:
@@ -398,7 +401,6 @@ class BlobDetector:
         except tf.LookupException as e:
             rospy.logerr(f"Error looking up object pose: {e}")
             return None, None
-
 
 
 def main():

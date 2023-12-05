@@ -1,4 +1,4 @@
-<launch>  
+<launch>
    <!-- APP5: Add your behaviors in this file.
          Remap cmd_vel output of your nodes to one available abitration entries (from highest to lowest prority): 
          cmd_vel_abtr_1,
@@ -17,27 +17,28 @@
 
    <arg name="prefix" default="racecar"/>
 
-   <arg name="use_sim_time"  default="false"/>
+   <arg name="use_sim_time" default="false"/>
 
    <param if="$(arg use_sim_time)" name="use_sim_time" value="true"/>
 
    <group ns="$(arg prefix)">
       <node pkg="racecar_behaviors" type="labo_brushfire.py" name="labo_brushfire" output="screen">
-         <remap from="map"     to="map"/>
-         <remap from="scan"    to="scan"/>
+         <remap from="map" to="map"/>
+         <remap from="scan" to="scan"/>
       </node>
 
       <node pkg="racecar_behaviors" type="obstacle_detector.py" name="obstacle_detector" output="screen">
          <remap from="cmd_vel" to="cmd_vel_abtr_1"/>
-         <remap from="scan"    to="scan"/>
+         <remap from="scan" to="scan"/>
       </node>
-      <node pkg="racecar_behaviors" type="move_base_send_coordinates.py" name="move_base_send_coordinates" output="screen"> 
+      <node pkg="racecar_behaviors" type="move_base_send_coordinates.py" name="move_base_send_coordinates" output="screen">
       </node>
-      
+
       <arg name="cmd_vel_topic" default="cmd_vel_abtr_3"/>
-      <arg name="odom_topic"    default="odom"/>
+      <arg name="odom_topic" default="odom"/>
       <arg name="fixed_frame_id" default="odom"/>
       <arg name="debug" default="false"/>
+
       <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
          <remap from="scan" to="scan"/>
          <remap from="map" to="map"/>
@@ -57,7 +58,7 @@
          <param name="planner_patience" value="5.0" />
 
          <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
-         <param name="controller_frequency" value="2" />
+         <param name="controller_frequency" value="2.0" />
          <param name="controller_patience" value="15.0" />
 
          <param name="clearing_rotation_allowed" value="false" />
