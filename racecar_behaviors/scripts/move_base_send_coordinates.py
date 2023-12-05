@@ -45,8 +45,7 @@ def move_base_send_coordinates(x, y, theta):
         rospy.loginfo("ROS node interrupted.")
         return False
 
-
 if __name__ == "__main__":
-    x_coord = -5
-    y_coord = 1
+    x_coord = -6
+    y_coord = -5
     move_base_send_coordinates(x_coord, y_coord, 0)
