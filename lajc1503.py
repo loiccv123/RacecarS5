@@ -117,21 +117,33 @@ def f(q):
     
     return r
 
-r = [1.0, 0.5]  # Link lengths
-d = [2.0, 1.5]  # Link offsets
-theta = [np.pi / 4, np.pi / 6]  # Joint angles (45 degrees, 30 degrees)
-alpha = [np.pi / 6, np.pi / 4]  # Link twists (30 degrees, 45 degrees)
+d1 = 0.5
+d2 = 0.5
+d3 = 0.5
 
-# Compute the global transformation matrix
+l1 = 0.5
+l2 = 0.5
+l3 = 0.5
+l4 = 0.5
+l5 = 0.5
+
+q1= np.pi
+q2= np.pi
+q3= np.pi
+q4= np.pi
+q5= np.pi
+
+r = [d1, l2, l3, l4, d3]  
+d = [l1, 0, 0, d2, l5]  
+theta = [q1, np.pi/2+q2+q3, q3+q4, np.pi/2+q5, 0]  
+alpha = [-np.pi/2, 0, 0, -np.pi/2, -np.pi/2]  
+
 WTT = dhs2T(r, d, theta, alpha)
 
-# Extract the position of the end-effector
 position = WTT[:3, 3]
 
-# Extract the rotation matrix
 rotation_matrix = WTT[:3, :3]
 
-# Print the results
 print("Global Transformation Matrix (WTT):")
 print(WTT)
 print("\nPosition of the end-effector (x, y, z):")
